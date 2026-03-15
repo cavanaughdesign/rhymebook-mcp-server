@@ -3,7 +3,15 @@
  * Core audio playback and analysis using Web Audio API with Tone.js effects
  */
 
-import * as Tone from 'tone';
+// Dynamic import for Tone.js to reduce bundle size
+let Tone: any = null;
+
+async function loadTone(): Promise<any> {
+  if (!Tone) {
+    Tone = await import('tone');
+  }
+  return Tone;
+}
 
 export interface AudioState {
   isPlaying: boolean;
@@ -45,13 +53,13 @@ export class AudioEngine {
   // Vocal removal
   private vocalRemovalAmount: number = 0;
 
-  // Tone.js effects
+  // Tone.js effects (loaded dynamically)
   private toneInitialized: boolean = false;
-  private reverb: Tone.Reverb | null = null;
-  private eq3: Tone.EQ3 | null = null;
-  private delay: Tone.FeedbackDelay | null = null;
-  private distortion: Tone.Distortion | null = null;
-  private effectsChain: Tone.ToneAudioNode[] = [];
+  private reverb: any = null;
+  private eq3: any = null;
+  private delay: any = null;
+  private distortion: any = null;
+  private effectsChain: any[] = [];
   private effectsEnabled: boolean = false;
 
   private state: AudioState = {
@@ -90,13 +98,16 @@ export class AudioEngine {
     if (this.toneInitialized) return;
 
     try {
-      await Tone.start();
+      // Load Tone.js dynamically
+      const toneModule = await loadTone();
+      
+      await toneModule.start();
       
       // Create effects
-      this.reverb = new Tone.Reverb({ decay: 2, wet: 0 });
-      this.eq3 = new Tone.EQ3({ low: 0, mid: 0, high: 0 });
-      this.delay = new Tone.FeedbackDelay({ delayTime: '8n', feedback: 0.3, wet: 0 });
-      this.distortion = new Tone.Distortion({ distortion: 0, wet: 0 });
+      this.reverb = new toneModule.Reverb({ decay: 2, wet: 0 });
+      this.eq3 = new toneModule.EQ3({ low: 0, mid: 0, high: 0 });
+      this.delay = new toneModule.FeedbackDelay({ delayTime: '8n', feedback: 0.3, wet: 0 });
+      this.distortion = new toneModule.Distortion({ distortion: 0, wet: 0 });
 
       // Connect effects chain
       this.distortion.connect(this.eq3);

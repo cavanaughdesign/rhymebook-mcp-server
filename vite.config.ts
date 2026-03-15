@@ -8,14 +8,27 @@ export default defineConfig({
     outDir: '../../dist/ui',
     emptyOutDir: true,
     target: 'esnext',
-    assetsInlineLimit: 100000000,
-    chunkSizeWarningLimit: 100000000,
+    assetsInlineLimit: 10000, // Reduced from 100MB to 10KB
+    chunkSizeWarningLimit: 500000, // 500KB warning limit
     cssCodeSplit: false,
     brotliSize: false,
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
     rollupOptions: {
       output: {
         inlineDynamicImports: true,
+        manualChunks: undefined, // Disable manual chunking for single file
       },
     },
+  },
+  // Optimize dependencies
+  optimizeDeps: {
+    include: ['@modelcontextprotocol/ext-apps'],
+    exclude: ['tone', 'wavesurfer.js'], // Don't pre-bundle heavy libs
   },
 });

@@ -4,7 +4,16 @@
  */
 
 import { AudioEngine, WaveformData } from './audio-engine.js';
-import WaveSurfer from 'wavesurfer.js';
+
+// Dynamic import for Wavesurfer.js to reduce bundle size
+let WaveSurfer: any = null;
+
+async function loadWaveSurfer(): Promise<any> {
+  if (!WaveSurfer) {
+    WaveSurfer = await import('wavesurfer.js');
+  }
+  return WaveSurfer;
+}
 
 // ============ WAVEFORM VISUALIZER (Wavesurfer.js) ============
 
@@ -39,30 +48,37 @@ export class WaveformVisualizer {
     this.setupWavesurfer();
   }
 
-  private setupWavesurfer(): void {
-    this.wavesurfer = WaveSurfer.create({
-      container: this.container,
-      height: this.options.height,
-      waveColor: this.options.waveColor,
-      progressColor: this.options.progressColor,
-      cursorColor: this.options.cursorColor,
-      barWidth: this.options.barWidth,
-      barGap: this.options.barGap,
-      barRadius: 2,
-      cursorWidth: 2,
-      normalize: true,
-      fillParent: true,
-      minPxPerSec: 1,
-    });
+  private async setupWavesurfer(): Promise<void> {
+    try {
+      // Load WaveSurfer dynamically
+      const waveSurferModule = await loadWaveSurfer();
 
-    this.wavesurfer.on('interaction', (newTime: number) => {
-      if (this.onSeek) {
-        const duration = this.wavesurfer?.getDuration() || 0;
-        if (duration > 0) {
-          this.onSeek(newTime);
+      this.wavesurfer = waveSurferModule.default.create({
+        container: this.container,
+        height: this.options.height,
+        waveColor: this.options.waveColor,
+        progressColor: this.options.progressColor,
+        cursorColor: this.options.cursorColor,
+        barWidth: this.options.barWidth,
+        barGap: this.options.barGap,
+        barRadius: 2,
+        cursorWidth: 2,
+        normalize: true,
+        fillParent: true,
+        minPxPerSec: 1,
+      });
+
+      this.wavesurfer.on('interaction', (newTime: number) => {
+        if (this.onSeek) {
+          const duration = this.wavesurfer?.getDuration() || 0;
+          if (duration > 0) {
+            this.onSeek(newTime);
+          }
         }
-      }
-    });
+      });
+    } catch (error) {
+      console.error('Failed to load WaveSurfer:', error);
+    }
   }
 
   setSeekCallback(callback: (time: number) => void): void {
