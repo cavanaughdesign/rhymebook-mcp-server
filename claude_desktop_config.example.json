@@ -1,0 +1,19 @@
+{
+  "_comment": "RhymeBook MCP Server Configuration for Claude Desktop",
+  "_instructions": [
+    "1. Replace the path below with your actual installation path",
+    "2. Copy this file to your Claude Desktop config location:",
+    "   - Windows: %APPDATA%\\Claude\\claude_desktop_config.json",
+    "   - macOS: ~/Library/Application Support/Claude/claude_desktop_config.json",
+    "   - Linux: ~/.config/Claude/claude_desktop_config.json",
+    "3. Restart Claude Desktop after saving"
+  ],
+
+  "mcpServers": {
+    "rhymebook": {
+      "command": "node",
+      "args": ["C:\\Users\\YourUsername\\rhymebook-mcp-server\\dist\\server\\index.js", "--stdio"],
+      "description": "RhymeBook - Music Artist MCP App"
+    }
+  }
+}

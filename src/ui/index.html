@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RhymeBook - Music Artist Studio</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">🎤</span>
+        <span class="logo-text">RhymeBook</span>
+      </div>
+      <nav class="nav-tabs">
+        <button class="nav-tab active" data-tab="dashboard">
+          <span class="tab-icon">📊</span>
+          <span class="tab-label">Dashboard</span>
+        </button>
+        <button class="nav-tab" data-tab="lyric-lab">
+          <span class="tab-icon">🎵</span>
+          <span class="tab-label">Lyric Lab</span>
+        </button>
+        <button class="nav-tab" data-tab="session-tracker">
+          <span class="tab-icon">🎛️</span>
+          <span class="tab-label">Sessions</span>
+        </button>
+        <button class="nav-tab" data-tab="beat-explorer">
+          <span class="tab-icon">🎧</span>
+          <span class="tab-label">Beats</span>
+        </button>
+      </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Dashboard Tab -->
+      <section id="dashboard" class="tab-content active">
+        <div class="dashboard-layout">
+          <!-- Overview Stats -->
+          <div class="stats-grid">
+            <div class="stat-card primary">
+              <span class="stat-icon">🎵</span>
+              <span class="stat-value" id="dash-total-songs">0</span>
+              <span class="stat-label">Total Songs</span>
+              <span class="stat-trend" id="dash-songs-trend"></span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">🎙️</span>
+              <span class="stat-value" id="dash-total-sessions">0</span>
+              <span class="stat-label">Sessions</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">🎤</span>
+              <span class="stat-value" id="dash-total-takes">0</span>
+              <span class="stat-label">Takes</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">🎧</span>
+              <span class="stat-value" id="dash-total-beats">0</span>
+              <span class="stat-label">Beats</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">👥</span>
+              <span class="stat-value" id="dash-total-collabs">0</span>
+              <span class="stat-label">Collaborators</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">📁</span>
+              <span class="stat-value" id="dash-total-collections">0</span>
+              <span class="stat-label">Collections</span>
+            </div>
+          </div>
+
+          <!-- Main Dashboard Grid -->
+          <div class="dashboard-grid">
+            <!-- Song Progress -->
+            <div class="panel dashboard-panel">
+              <div class="panel-header">
+                <h2>🎵 Song Progress</h2>
+                <span class="panel-subtitle">Pipeline Overview</span>
+              </div>
+              <div class="panel-body">
+                <div class="progress-funnel" id="song-funnel">
+                  <div class="funnel-stage" data-status="writing">
+                    <div class="funnel-bar" style="--progress: 0%"></div>
+                    <span class="funnel-label">Writing</span>
+                    <span class="funnel-count" id="funnel-writing">0</span>
+                  </div>
+                  <div class="funnel-stage" data-status="recording">
+                    <div class="funnel-bar" style="--progress: 0%"></div>
+                    <span class="funnel-label">Recording</span>
+                    <span class="funnel-count" id="funnel-recording">0</span>
+                  </div>
+                  <div class="funnel-stage" data-status="mixing">
+                    <div class="funnel-bar" style="--progress: 0%"></div>
+                    <span class="funnel-label">Mixing</span>
+                    <span class="funnel-count" id="funnel-mixing">0</span>
+                  </div>
+                  <div class="funnel-stage" data-status="mastering">
+                    <div class="funnel-bar" style="--progress: 0%"></div>
+                    <span class="funnel-label">Mastering</span>
+                    <span class="funnel-count" id="funnel-mastering">0</span>
+                  </div>
+                  <div class="funnel-stage" data-status="released">
+                    <div class="funnel-bar" style="--progress: 0%"></div>
+                    <span class="funnel-label">Released</span>
+                    <span class="funnel-count" id="funnel-released">0</span>
+                  </div>
+                </div>
+                <div class="completion-rate">
+                  <span class="completion-label">Completion Rate</span>
+                  <span class="completion-value" id="completion-rate">0%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Weekly Activity Chart -->
+            <div class="panel dashboard-panel">
+              <div class="panel-header">
+                <h2>📈 Weekly Activity</h2>
+                <span class="panel-subtitle">Last 8 weeks</span>
+              </div>
+              <div class="panel-body">
+                <div class="activity-chart" id="activity-chart">
+                  <!-- Chart bars will be rendered here -->
+                </div>
+                <div class="chart-legend">
+                  <span class="legend-item"><span class="legend-color songs"></span> Songs</span>
+                  <span class="legend-item"><span class="legend-color sessions"></span> Sessions</span>
+                  <span class="legend-item"><span class="legend-color takes"></span> Takes</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Activity Feed -->
+            <div class="panel dashboard-panel activity-panel">
+              <div class="panel-header">
+                <h2>⚡ Recent Activity</h2>
+                <div class="activity-filters">
+                  <button class="filter-btn active" data-filter="all">All</button>
+                  <button class="filter-btn" data-filter="songs">Songs</button>
+                  <button class="filter-btn" data-filter="sessions">Sessions</button>
+                  <button class="filter-btn" data-filter="beats">Beats</button>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="activity-feed" id="activity-feed">
+                  <!-- Activity items will be rendered here -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Insights Panel -->
+            <div class="panel dashboard-panel">
+              <div class="panel-header">
+                <h2>💡 Insights</h2>
+              </div>
+              <div class="panel-body">
+                <div class="insights-grid">
+                  <div class="insight-card">
+                    <span class="insight-icon">📅</span>
+                    <span class="insight-label">Most Productive Day</span>
+                    <span class="insight-value" id="insight-productive-day">-</span>
+                  </div>
+                  <div class="insight-card">
+                    <span class="insight-icon">⏱️</span>
+                    <span class="insight-label">Avg Session Length</span>
+                    <span class="insight-value" id="insight-avg-session">-</span>
+                  </div>
+                  <div class="insight-card">
+                    <span class="insight-icon">🎯</span>
+                    <span class="insight-label">Completion Rate</span>
+                    <span class="insight-value" id="insight-completion">-</span>
+                  </div>
+                  <div class="insight-card">
+                    <span class="insight-icon">🤝</span>
+                    <span class="insight-label">Top Collaborator</span>
+                    <span class="insight-value" id="insight-top-collab">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Songs -->
+            <div class="panel dashboard-panel">
+              <div class="panel-header">
+                <h2>🎵 Recent Songs</h2>
+                <button class="btn btn-sm btn-secondary" id="dash-view-all-songs">View All</button>
+              </div>
+              <div class="panel-body">
+                <div class="recent-list" id="recent-songs">
+                  <!-- Recent songs will be rendered here -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Sessions -->
+            <div class="panel dashboard-panel">
+              <div class="panel-header">
+                <h2>🎙️ Recent Sessions</h2>
+                <button class="btn btn-sm btn-secondary" id="dash-view-all-sessions">View All</button>
+              </div>
+              <div class="panel-body">
+                <div class="recent-list" id="recent-sessions">
+                  <!-- Recent sessions will be rendered here -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="panel dashboard-panel quick-actions-panel">
+              <div class="panel-header">
+                <h2>⚡ Quick Actions</h2>
+              </div>
+              <div class="panel-body">
+                <div class="quick-actions">
+                  <button class="quick-action-btn" id="qa-new-song">
+                    <span class="qa-icon">🎵</span>
+                    <span class="qa-label">New Song</span>
+                  </button>
+                  <button class="quick-action-btn" id="qa-new-session">
+                    <span class="qa-icon">🎙️</span>
+                    <span class="qa-label">New Session</span>
+                  </button>
+                  <button class="quick-action-btn" id="qa-import-lyrics">
+                    <span class="qa-icon">📥</span>
+                    <span class="qa-label">Import Lyrics</span>
+                  </button>
+                  <button class="quick-action-btn" id="qa-browse-beats">
+                    <span class="qa-icon">🎧</span>
+                    <span class="qa-label">Browse Beats</span>
+                  </button>
+                  <button class="quick-action-btn" id="qa-add-collab">
+                    <span class="qa-icon">👥</span>
+                    <span class="qa-label">Add Collaborator</span>
+                  </button>
+                  <button class="quick-action-btn" id="qa-library-settings">
+                    <span class="qa-icon">📁</span>
+                    <span class="qa-label">Library Settings</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Beat Library Stats -->
+            <div class="panel dashboard-panel">
+              <div class="panel-header">
+                <h2>🎧 Beat Library</h2>
+              </div>
+              <div class="panel-body">
+                <div class="beat-stats-mini">
+                  <div class="beat-stat-row">
+                    <span>Total Beats</span>
+                    <span id="beat-stat-total">0</span>
+                  </div>
+                  <div class="beat-stat-row">
+                    <span>Favorites</span>
+                    <span id="beat-stat-favorites">0</span>
+                  </div>
+                  <div class="beat-stat-row">
+                    <span>Avg BPM</span>
+                    <span id="beat-stat-bpm">0</span>
+                  </div>
+                  <div class="beat-stat-row">
+                    <span>Library Size</span>
+                    <span id="beat-stat-size">0 B</span>
+                  </div>
+                  <div class="beat-genres" id="beat-top-genres">
+                    <!-- Top genres will be rendered here -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lyric Lab Tab -->
+      <section id="lyric-lab" class="tab-content">
+        <div class="lyric-lab-layout">
+          <!-- Left Panel: Lyrics Editor -->
+          <div class="panel lyrics-panel">
+            <div class="panel-header">
+              <h2>📝 Lyrics Editor</h2>
+              <div class="panel-actions">
+                <button class="btn btn-secondary" id="btn-load-song">📂 Load</button>
+                <button class="btn btn-secondary" id="btn-new-song">New Song</button>
+                <button class="btn btn-secondary" id="btn-import-lyrics">📥 Import</button>
+                <button class="btn btn-primary" id="btn-save-lyrics">💾 Save</button>
+                <button class="btn btn-secondary" id="btn-export-lyrics">📤 Export</button>
+              </div>
+            </div>
+            <div class="song-title-input">
+              <input type="text" id="song-title" placeholder="Song Title..." value="Untitled Track">
+              <input type="hidden" id="song-id" value="">
+            </div>
+            <div class="sections-container" id="sections-container">
+              <!-- Sections will be rendered here -->
+            </div>
+            <div class="add-section">
+              <button class="btn btn-outline" id="btn-add-section">+ Add Section</button>
+              <select id="section-type">
+                <option value="verse">Verse</option>
+                <option value="chorus">Chorus</option>
+                <option value="bridge">Bridge</option>
+                <option value="hook">Hook</option>
+                <option value="intro">Intro</option>
+                <option value="outro">Outro</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Right Panel: Tools -->
+          <div class="panel tools-panel">
+            <!-- Rhyme Finder -->
+            <div class="tool-card">
+              <h3>🔍 Rhyme Finder</h3>
+              <div class="tool-input">
+                <input type="text" id="rhyme-input" placeholder="Enter a word...">
+                <button class="btn btn-primary" id="btn-find-rhymes">Find</button>
+              </div>
+              <div id="rhyme-results" class="tool-results">
+                <div class="placeholder-text">Enter a word to find rhymes</div>
+              </div>
+            </div>
+
+            <!-- Syllable Counter -->
+            <div class="tool-card">
+              <h3>📊 Syllable Counter</h3>
+              <div class="syllable-display" id="syllable-display">
+                <div class="syllable-stat">
+                  <span class="stat-value" id="total-syllables">0</span>
+                  <span class="stat-label">Total Syllables</span>
+                </div>
+                <div class="syllable-stat">
+                  <span class="stat-value" id="avg-syllables">0</span>
+                  <span class="stat-label">Avg per Line</span>
+                </div>
+                <div class="syllable-stat">
+                  <span class="stat-value" id="line-count">0</span>
+                  <span class="stat-label">Lines</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Flow Visualizer -->
+            <div class="tool-card">
+              <h3>🌊 Flow Pattern</h3>
+              <div class="flow-display" id="flow-display">
+                <div class="flow-bars" id="flow-bars">
+                  <!-- Flow bars will be rendered here -->
+                </div>
+                <div class="flow-stats" id="flow-stats">
+                  <span>Consistency: <strong id="flow-consistency">-</strong></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Thesaurus -->
+            <div class="tool-card">
+              <h3>📖 Thesaurus</h3>
+              <div class="tool-input">
+                <input type="text" id="thesaurus-input" placeholder="Enter a word...">
+                <button class="btn btn-primary" id="btn-find-synonyms">Find</button>
+              </div>
+              <div id="thesaurus-results" class="tool-results">
+                <div class="placeholder-text">Enter a word to find synonyms</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Session Tracker Tab -->
+      <section id="session-tracker" class="tab-content">
+        <div class="session-layout">
+          <!-- Stats Overview -->
+          <div class="stats-overview">
+            <div class="stat-card">
+              <span class="stat-icon">🎵</span>
+              <span class="stat-value" id="stat-total-songs">3</span>
+              <span class="stat-label">Total Songs</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">✍️</span>
+              <span class="stat-value" id="stat-writing">1</span>
+              <span class="stat-label">Writing</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">🎙️</span>
+              <span class="stat-value" id="stat-recording">1</span>
+              <span class="stat-label">Recording</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">🎚️</span>
+              <span class="stat-value" id="stat-mixing">1</span>
+              <span class="stat-label">Mixing</span>
+            </div>
+            <div class="stat-card">
+              <span class="stat-icon">📈</span>
+              <span class="stat-value" id="stat-avg-progress">58%</span>
+              <span class="stat-label">Avg Progress</span>
+            </div>
+          </div>
+
+          <!-- Songs List -->
+          <div class="panel songs-panel">
+            <div class="panel-header">
+              <h2>🎵 Projects</h2>
+              <button class="btn btn-primary" id="btn-new-project">+ New Project</button>
+            </div>
+            <div class="songs-list" id="songs-list">
+              <!-- Songs will be rendered here -->
+            </div>
+          </div>
+
+          <!-- Sessions List -->
+          <div class="panel sessions-panel">
+            <div class="panel-header">
+              <h2>🎛️ Recording Sessions</h2>
+              <button class="btn btn-primary" id="btn-new-session">+ New Session</button>
+            </div>
+            <div class="sessions-list" id="sessions-list">
+              <!-- Sessions will be rendered here -->
+            </div>
+          </div>
+
+          <!-- Collaborators -->
+          <div class="panel collaborators-panel">
+            <div class="panel-header">
+              <h2>👥 Collaborators</h2>
+              <button class="btn btn-primary" id="btn-add-collab">+ Add</button>
+            </div>
+            <div class="collaborators-list" id="collaborators-list">
+              <!-- Collaborators will be rendered here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Beat Explorer Tab -->
+      <section id="beat-explorer" class="tab-content">
+        <div class="beat-layout">
+          <!-- Filters -->
+          <div class="filters-bar">
+            <div class="filter-group">
+              <button class="btn btn-secondary" id="btn-library-settings">📁 Library</button>
+            </div>
+            <div class="filter-group">
+              <button class="btn btn-secondary" id="btn-add-beat-modal">+ Add Beat</button>
+            </div>
+            <div class="filter-group">
+              <label>Genre</label>
+              <select id="filter-genre">
+                <option value="">All Genres</option>
+                <option value="trap">Trap</option>
+                <option value="drill">Drill</option>
+                <option value="hip-hop">Hip-Hop</option>
+                <option value="lo-fi">Lo-Fi</option>
+                <option value="pop-rap">Pop-Rap</option>
+                <option value="soul">Soul</option>
+                <option value="r&b">R&B</option>
+                <option value="electronic">Electronic</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>Mood</label>
+              <select id="filter-mood">
+                <option value="">All Moods</option>
+                <option value="dark">Dark</option>
+                <option value="happy">Happy</option>
+                <option value="chill">Chill</option>
+                <option value="aggressive">Aggressive</option>
+                <option value="motivational">Motivational</option>
+                <option value="emotional">Emotional</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label>BPM Range</label>
+              <div class="range-inputs">
+                <input type="number" id="filter-bpm-min" placeholder="Min" min="60" max="200">
+                <span>-</span>
+                <input type="number" id="filter-bpm-max" placeholder="Max" min="60" max="200">
+              </div>
+            </div>
+            <div class="filter-group">
+              <label>Energy</label>
+              <input type="range" id="filter-energy" min="0" max="100" value="0">
+              <span id="energy-value">0+</span>
+            </div>
+            <div class="filter-group">
+              <label class="checkbox-label">
+                <input type="checkbox" id="filter-favorites">
+                <span>Favorites Only</span>
+              </label>
+            </div>
+            <button class="btn btn-primary" id="btn-apply-filters">Apply Filters</button>
+          </div>
+
+          <!-- Lyric Matcher -->
+          <div class="lyric-matcher">
+            <h3>🎯 Lyric-to-Beat Matcher</h3>
+            <div class="matcher-input">
+              <textarea id="lyrics-for-matching" placeholder="Paste your lyrics here to find matching beats..."></textarea>
+              <button class="btn btn-primary" id="btn-match-beats">Find Matches</button>
+            </div>
+            <div id="match-results" class="match-results"></div>
+          </div>
+
+          <!-- Beats Grid -->
+          <div class="beats-grid" id="beats-grid">
+            <!-- Beats will be rendered here -->
+          </div>
+
+          <!-- Collections -->
+          <div class="collections-section">
+            <h3>📁 Collections</h3>
+            <div class="collections-grid" id="collections-grid">
+              <!-- Collections will be rendered here -->
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal for Export -->
+    <div class="modal" id="export-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Export Lyrics</h3>
+          <button class="modal-close" data-modal="export-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="export-options">
+            <button class="export-option" data-format="text">
+              <span class="export-icon">📄</span>
+              <span>Plain Text</span>
+            </button>
+            <button class="export-option" data-format="markdown">
+              <span class="export-icon">📝</span>
+              <span>Markdown</span>
+            </button>
+            <button class="export-option" data-format="json">
+              <span class="export-icon">📋</span>
+              <span>JSON</span>
+            </button>
+            <button class="export-option" data-format="lrc">
+              <span class="export-icon">🎵</span>
+              <span>LRC</span>
+            </button>
+          </div>
+          <div class="export-preview" id="export-preview">
+            <pre><code id="export-content"></code></pre>
+          </div>
+          <button class="btn btn-primary" id="btn-copy-export">Copy to Clipboard</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Load Song -->
+    <div class="modal" id="load-song-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>📂 Load Song</h3>
+          <button class="modal-close" data-modal="load-song-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="song-list" id="song-list-modal">
+            <!-- Songs will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Import Lyrics -->
+    <div class="modal" id="import-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>📥 Import Lyrics</h3>
+          <button class="modal-close" data-modal="import-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="import-tabs">
+            <button class="import-tab active" data-tab="file">From File</button>
+            <button class="import-tab" data-tab="text">From Text</button>
+            <button class="import-tab" data-tab="batch">Batch Import</button>
+          </div>
+          <div class="import-content" id="import-file-content">
+            <p>Paste the path to a lyrics file (TXT, JSON, LRC, SRT):</p>
+            <input type="text" id="import-file-path" placeholder="C:\path\to\lyrics.txt">
+            <button class="btn btn-primary" id="btn-import-file">Import File</button>
+          </div>
+          <div class="import-content hidden" id="import-text-content">
+            <p>Paste your lyrics below:</p>
+            <textarea id="import-text-area" placeholder="[Verse 1]
+Your lyrics here...
+
+[Chorus]
+Chorus lyrics..."></textarea>
+            <button class="btn btn-primary" id="btn-import-text">Import Text</button>
+          </div>
+          <div class="import-content hidden" id="import-batch-content">
+            <p>Import all lyrics files from a directory:</p>
+            <input type="text" id="import-batch-path" placeholder="C:\path\to\lyrics\folder">
+            <button class="btn btn-primary" id="btn-import-batch">Batch Import</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Create Session -->
+    <div class="modal" id="create-session-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>🎙️ New Recording Session</h3>
+          <button class="modal-close" data-modal="create-session-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Song</label>
+            <select id="session-song-select">
+              <!-- Songs will be loaded here -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="session-date">
+          </div>
+          <div class="form-group">
+            <label>Studio</label>
+            <input type="text" id="session-studio" placeholder="Studio name">
+          </div>
+          <div class="form-group">
+            <label>Engineer</label>
+            <input type="text" id="session-engineer" placeholder="Engineer name">
+          </div>
+          <button class="btn btn-primary" id="btn-create-session">Create Session</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Log Take -->
+    <div class="modal" id="log-take-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>🎤 Log Take</h3>
+          <button class="modal-close" data-modal="log-take-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="take-session-id">
+          <div class="form-group">
+            <label>Rating</label>
+            <div class="star-rating" id="take-rating">
+              <span class="star" data-rating="1">☆</span>
+              <span class="star" data-rating="2">☆</span>
+              <span class="star" data-rating="3">☆</span>
+              <span class="star" data-rating="4">☆</span>
+              <span class="star" data-rating="5">☆</span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Duration (seconds)</label>
+            <input type="number" id="take-duration" placeholder="45">
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea id="take-notes" placeholder="Notes about this take..."></textarea>
+          </div>
+          <button class="btn btn-primary" id="btn-log-take">Log Take</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Add Collaborator -->
+    <div class="modal" id="add-collaborator-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>👥 Add Collaborator</h3>
+          <button class="modal-close" data-modal="add-collaborator-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="collab-name" placeholder="Collaborator name">
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="collab-role">
+              <option value="artist">Artist</option>
+              <option value="producer">Producer</option>
+              <option value="engineer">Engineer</option>
+              <option value="writer">Writer</option>
+              <option value="feature">Feature</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Contact</label>
+            <input type="text" id="collab-contact" placeholder="Email or phone">
+          </div>
+          <button class="btn btn-primary" id="btn-add-collaborator">Add Collaborator</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Library Settings -->
+    <div class="modal" id="library-settings-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>📁 Beats Library Settings</h3>
+          <button class="modal-close" data-modal="library-settings-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Library Path</label>
+            <div class="input-with-button">
+              <input type="text" id="library-path-input" placeholder="C:\Users\You\Music\Beats">
+              <button class="btn btn-secondary" id="btn-set-library-path">Set</button>
+            </div>
+          </div>
+          <div class="library-stats" id="library-stats">
+            <!-- Stats will be loaded here -->
+          </div>
+          <div class="library-actions">
+            <button class="btn btn-primary" id="btn-scan-library">🔍 Scan Library</button>
+            <button class="btn btn-primary" id="btn-import-beats">📥 Import New Beats</button>
+          </div>
+          <div class="scan-results" id="scan-results">
+            <!-- Scan results will be shown here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Add Beat -->
+    <div class="modal" id="add-beat-modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>🎵 Add Beat</h3>
+          <button class="modal-close" data-modal="add-beat-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="beat-title" placeholder="Beat title">
+          </div>
+          <div class="form-group">
+            <label>Producer</label>
+            <input type="text" id="beat-producer" placeholder="Producer name">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>BPM</label>
+              <input type="number" id="beat-bpm" placeholder="140">
+            </div>
+            <div class="form-group">
+              <label>Key</label>
+              <input type="text" id="beat-key" placeholder="Am">
+            </div>
+            <div class="form-group">
+              <label>Energy</label>
+              <input type="number" id="beat-energy" placeholder="75" min="0" max="100">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>File Path (optional)</label>
+            <input type="text" id="beat-file-path" placeholder="C:\path\to\beat.mp3">
+          </div>
+          <div class="form-group">
+            <label>Genres (comma-separated)</label>
+            <input type="text" id="beat-genres" placeholder="trap, hip-hop">
+          </div>
+          <div class="form-group">
+            <label>Moods (comma-separated)</label>
+            <input type="text" id="beat-moods" placeholder="dark, aggressive">
+          </div>
+          <button class="btn btn-primary" id="btn-add-beat">Add Beat</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+  </div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>

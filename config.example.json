@@ -1,0 +1,49 @@
+{
+  "_comment": "RhymeBook MCP Server Configuration",
+  "_instructions": [
+    "1. Copy this file to config.json",
+    "2. Update the paths to match your installation",
+    "3. Set environment variables as needed"
+  ],
+
+  "server": {
+    "port": 3001,
+    "host": "localhost"
+  },
+
+  "database": {
+    "path": "~/.rhymebook/rhymebook.db",
+    "walMode": true,
+    "foreignKeys": true
+  },
+
+  "beatsLibrary": {
+    "path": "~/Music/Beats",
+    "supportedFormats": [".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma"],
+    "autoScan": true,
+    "cacheTTL": 60000
+  },
+
+  "security": {
+    "rateLimitWindow": 900000,
+    "rateLimitMax": 100,
+    "maxFileSize": 104857600,
+    "allowedOrigins": [
+      "http://localhost:3000",
+      "http://localhost:3001",
+      "http://localhost:5173"
+    ]
+  },
+
+  "audio": {
+    "maxFileSize": "100MB",
+    "supportedFormats": [".mp3", ".wav", ".flac", ".aac", ".ogg", ".m4a", ".wma"],
+    "enableVocalRemoval": true
+  },
+
+  "ui": {
+    "theme": "dark",
+    "autoSaveInterval": 30000,
+    "enableKeyboardShortcuts": true
+  }
+}
