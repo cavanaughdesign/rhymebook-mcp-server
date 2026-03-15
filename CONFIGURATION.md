@@ -276,6 +276,49 @@ Use the `set-library-path` tool or the Library Settings button in the UI.
 3. Verify file format is supported
 4. Check server logs for errors
 
+### MCP App Size Limit Error
+
+**Error**: "Failed to load MCP App: the resource may exceed the 5 MB size limit"
+
+**Symptoms**:
+- Claude Desktop fails to load the RhymeBook UI
+- Error appears when using tools with interactive interfaces
+- Works in development but fails in production
+
+**Root Cause**:
+The bundled HTML file containing the UI exceeds Claude Desktop's 5MB limit for MCP App resources.
+
+**Solutions**:
+
+1. **Check Bundle Size**:
+   ```bash
+   npm run build:ui
+   ls -lh dist/ui/index.html
+   ```
+   Should be under 5MB (currently optimized to ~634KB)
+
+2. **Rebuild with Optimizations**:
+   ```bash
+   npm install  # Ensure terser is installed
+   npm run build:ui
+   ```
+
+3. **Verify Dynamic Loading**:
+   - Tone.js and Wavesurfer.js load on-demand
+   - Audio features work but load slower initially
+   - Check browser console for any loading errors
+
+4. **If Still Over Limit**:
+   - Reduce imported libraries
+   - Implement code splitting
+   - Remove unused features
+   - Contact support if issue persists
+
+**Prevention**:
+- Keep bundle under 1MB for best performance
+- Use dynamic imports for heavy libraries
+- Regularly check bundle size during development
+
 ---
 
 ## 📞 Support
