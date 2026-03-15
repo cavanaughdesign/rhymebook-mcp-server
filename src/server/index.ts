@@ -47,8 +47,29 @@ function createServer(): McpServer {
     'ui://rhymebook/app.html',
     { mimeType: RESOURCE_MIME_TYPE },
     async () => {
-      const htmlPath = path.join(__dirname, '../ui/index.html');
-      const html = await fs.readFile(htmlPath, 'utf-8');
+      // Prefer a built/bundled UI in dist/ui if available (ensures small single-file UI for hosts)
+      const distHtmlPath = path.resolve(__dirname, '../../dist/ui/index.html');
+      const fallbackHtmlPath = path.resolve(__dirname, '../ui/index.html');
+
+      let htmlPathToUse = fallbackHtmlPath;
+      try {
+        // Use dist bundle when present (production builds)
+        await fs.access(distHtmlPath);
+        htmlPathToUse = distHtmlPath;
+        logInfo(`Serving bundled UI from ${distHtmlPath}`, 'server');
+      } catch {
+        try {
+          // Fall back to local UI folder (dev)
+          await fs.access(fallbackHtmlPath);
+          htmlPathToUse = fallbackHtmlPath;
+          logInfo(`Serving UI from ${fallbackHtmlPath}`, 'server');
+        } catch (err) {
+          logError('UI resource not found', 'server', err);
+          throw new Error('UI resource not found');
+        }
+      }
+
+      const html = await fs.readFile(htmlPathToUse, 'utf-8');
       return {
         contents: [
           { uri: 'ui://rhymebook/app.html', mimeType: RESOURCE_MIME_TYPE, text: html }
