@@ -126,8 +126,43 @@ The skill is located in `.claude/skills/SKILL.md` and activates automatically wh
 ### Prerequisites
 - Node.js 18+
 - npm or pnpm
+- **FFmpeg** (for audio processing)
+- **Spleeter** (for vocal separation)
 
-### Installation
+#### Installing FFmpeg
+
+**Windows (Chocolatey):**
+```bash
+choco install ffmpeg
+```
+
+**Windows (Manual):**
+1. Download from [ffmpeg.org](https://ffmpeg.org/download.html)
+2. Add to PATH environment variable
+
+**macOS (Homebrew):**
+```bash
+brew install ffmpeg
+```
+
+**Linux (Ubuntu/Debian):**
+```bash
+sudo apt update && sudo apt install ffmpeg
+```
+
+#### Installing Spleeter
+
+**Via pip:**
+```bash
+pip install spleeter
+```
+
+**Via conda:**
+```bash
+conda install -c conda-forge spleeter
+```
+
+**Note:** Spleeter requires Python 3.7+ and will download AI models on first use (~265MB).
 
 ```bash
 # Clone the repository
