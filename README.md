@@ -20,6 +20,7 @@
   <img src="https://img.shields.io/badge/version-1.0.0-blue?style=flat" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat" alt="License">
   <img src="https://img.shields.io/badge/tools-40+-orange?style=flat" alt="Tools">
+  <img src="https://img.shields.io/badge/bundle-634KB-brightgreen?style=flat" alt="Bundle Size">
   <img src="https://img.shields.io/badge/tests-78%20passing-brightgreen?style=flat" alt="Tests">
 </p>
 
@@ -113,6 +114,10 @@ The skill is located in `.claude/skills/SKILL.md` and activates automatically wh
 - **Parallel Dashboard Queries** - Faster dashboard loading
 - **Scan Caching** - Beat library scans cached for 1 minute
 - **Real-time Vocal Removal** - No playback restart needed
+- **Dynamic Library Loading** - Tone.js and Wavesurfer.js loaded on-demand
+- **Optimized Bundle Size** - 634KB single-file bundle (under 5MB MCP limit)
+- **Tree Shaking** - Unused code automatically removed
+- **Terser Minification** - Production code compressed and optimized
 
 ### Security Features
 - **Path Traversal Protection** - Validates all file paths
