@@ -47,6 +47,17 @@ RhymeBook is an **AI-powered music production assistant** that lives inside your
 
 RhymeBook uses MCP to give AI assistants direct access to your music tools. Ask Claude to find rhymes, log a take, or browse beats — it all happens instantly through natural conversation.
 
+### 🤖 Claude Skill Included
+
+RhymeBook comes with a **built-in Claude skill** that provides intelligent assistance:
+
+- **Smart Tool Selection** - Automatically picks the right tool for your request
+- **Creative Partner** - Proactively suggests rhymes, flow improvements, and beat matches
+- **Workflow Guidance** - Guides you through writing, recording, and production
+- **Natural Language** - Just ask naturally, no need to remember tool names
+
+The skill is located in `.claude/skills/SKILL.md` and activates automatically when you mention music-related terms.
+
 ---
 
 ## ✨ Features
