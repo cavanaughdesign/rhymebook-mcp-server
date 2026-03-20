@@ -1,19 +1,33 @@
 {
   "_comment": "RhymeBook MCP Server Configuration for Claude Desktop",
   "_instructions": [
-    "1. Replace the path below with your actual installation path",
-    "2. Copy this file to your Claude Desktop config location:",
+    "1. Build the server first:  npm run build",
+    "2. Replace the path below with your actual installation path",
+    "3. Copy this config to your Claude Desktop config location:",
     "   - Windows: %APPDATA%\\Claude\\claude_desktop_config.json",
-    "   - macOS: ~/Library/Application Support/Claude/claude_desktop_config.json",
-    "   - Linux: ~/.config/Claude/claude_desktop_config.json",
-    "3. Restart Claude Desktop after saving"
+    "   - macOS:   ~/Library/Application Support/Claude/claude_desktop_config.json",
+    "   - Linux:   ~/.config/Claude/claude_desktop_config.json",
+    "4. Restart Claude Desktop after saving",
+    "",
+    "NOTES:",
+    "  --stdio flag is REQUIRED for Claude Desktop (JSON-RPC over stdin/stdout).",
+    "  A sidecar HTTP server for audio files starts automatically on ASSET_PORT",
+    "  (default 3002).  Set ASSET_PORT env var to change it if 3002 is in use.",
+    "  All server logs go to stderr and are visible in Claude Desktop's MCP logs."
   ],
 
   "mcpServers": {
     "rhymebook": {
       "command": "node",
-      "args": ["C:\\Users\\YourUsername\\rhymebook-mcp-server\\dist\\server\\index.js", "--stdio"],
-      "description": "RhymeBook - Music Artist MCP App"
+      "args": [
+        "/REPLACE/WITH/YOUR/PATH/rhymebook-mcp-server/dist/server/index.js",
+        "--stdio"
+      ],
+      "env": {
+        "NODE_ENV": "production",
+        "ASSET_PORT": "3002"
+      },
+      "description": "RhymeBook - AI Music Artist Studio (lyrics, beats, sessions)"
     }
   }
 }

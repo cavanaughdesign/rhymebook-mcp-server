@@ -1,6 +1,11 @@
 /**
  * RhymeBook Logger Utility
- * Provides structured logging with different levels and environment-aware output
+ * Provides structured logging with different levels and environment-aware output.
+ *
+ * IMPORTANT: All output goes to process.stderr, never process.stdout.
+ * stdout is reserved exclusively for the MCP stdio transport when running
+ * in --stdio mode. Any console.log/console.info to stdout would corrupt the
+ * JSON-RPC framing and break Claude Desktop and other stdio-based MCP clients.
  */
 
 export enum LogLevel {
@@ -47,40 +52,43 @@ class Logger {
   private formatMessage(entry: LogEntry): string {
     const prefix = `[${entry.timestamp}] [${entry.level.toUpperCase()}]`;
     const contextStr = entry.context ? ` [${entry.context}]` : '';
-    return `${prefix}${contextStr} ${entry.message}`;
+    const dataStr = entry.data ? ` ${JSON.stringify(entry.data)}` : '';
+    return `${prefix}${contextStr} ${entry.message}${dataStr}`;
+  }
+
+  /** Write to stderr only — never stdout (stdout is reserved for MCP stdio transport). */
+  private writeStderr(message: string): void {
+    process.stderr.write(message + '\n');
   }
 
   debug(message: string, context?: string, data?: unknown): void {
     const entry = this.createEntry(LogLevel.DEBUG, message, context, data);
     this.addToHistory(entry);
-    
     if (this.isDevelopment) {
-      console.debug(this.formatMessage(entry), data || '');
+      this.writeStderr(this.formatMessage(entry));
     }
   }
 
   info(message: string, context?: string, data?: unknown): void {
     const entry = this.createEntry(LogLevel.INFO, message, context, data);
     this.addToHistory(entry);
-    
     if (this.isDevelopment) {
-      console.info(this.formatMessage(entry), data || '');
+      this.writeStderr(this.formatMessage(entry));
     }
   }
 
   warn(message: string, context?: string, data?: unknown): void {
     const entry = this.createEntry(LogLevel.WARN, message, context, data);
     this.addToHistory(entry);
-    
-    console.warn(this.formatMessage(entry), data || '');
+    // Always log warnings to stderr
+    this.writeStderr(this.formatMessage(entry));
   }
 
   error(message: string, context?: string, data?: unknown): void {
     const entry = this.createEntry(LogLevel.ERROR, message, context, data);
     this.addToHistory(entry);
-    
-    // Always log errors, even in production
-    console.error(this.formatMessage(entry), data || '');
+    // Always log errors to stderr
+    this.writeStderr(this.formatMessage(entry));
   }
 
   getHistory(level?: LogLevel): LogEntry[] {
