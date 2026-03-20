@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RhymeBook - Session Tracker</title>
+  <style>
+    :root {
+      --bg-primary: #0d0d0d;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #252525;
+      --bg-card: #1e1e1e;
+      --bg-hover: #2a2a2a;
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --text-muted: #666666;
+      --accent-primary: #9333ea;
+      --accent-secondary: #a855f7;
+      --accent-gold: #fbbf24;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+      --border-color: #333333;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: var(--spacing-md);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-lg);
+      padding-bottom: var(--spacing-md);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .logo-icon { font-size: 24px; }
+    .logo-text { font-size: 20px; font-weight: 700; color: var(--accent-primary); }
+
+    .btn {
+      background: var(--accent-primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover { background: var(--accent-secondary); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary { background: var(--bg-tertiary); }
+    .btn-secondary:hover { background: var(--bg-hover); }
+    .btn-danger { background: var(--error); }
+    .btn-danger:hover { background: #dc2626; }
+
+    .container { max-width: 900px; margin: 0 auto; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-md);
+      text-align: center;
+    }
+
+    .stat-icon { font-size: 20px; margin-bottom: var(--spacing-xs); }
+    .stat-value { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; }
+
+    .sessions-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+
+    .session-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-md);
+      border-left: 3px solid var(--accent-primary);
+    }
+
+    .session-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .session-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .session-status {
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+
+    .session-status.scheduled { background: var(--info); color: white; }
+    .session-status.in-progress { background: var(--warning); color: black; }
+    .session-status.completed { background: var(--success); color: white; }
+
+    .session-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-md);
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .session-meta span { display: flex; align-items: center; gap: 4px; }
+
+    .session-takes {
+      margin-top: var(--spacing-sm);
+      padding-top: var(--spacing-sm);
+      border-top: 1px solid var(--border-color);
+    }
+
+    .takes-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .takes-title { font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+
+    .take-item {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-xs) 0;
+      font-size: 12px;
+    }
+
+    .take-number {
+      background: var(--bg-tertiary);
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+    }
+
+    .take-rating { color: var(--accent-gold); }
+    .take-duration { color: var(--text-muted); }
+    .take-notes { color: var(--text-secondary); flex: 1; }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+    }
+
+    .modal-title { font-size: 18px; font-weight: 600; }
+    .modal-close { background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+
+    .form-group {
+      margin-bottom: var(--spacing-md);
+    }
+
+    .form-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      padding: var(--spacing-sm);
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+
+    .form-textarea { min-height: 80px; resize: vertical; }
+
+    .form-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+      justify-content: flex-end;
+      margin-top: var(--spacing-lg);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: var(--spacing-xl);
+      color: var(--text-muted);
+    }
+
+    .empty-state-icon { font-size: 48px; margin-bottom: var(--spacing-md); }
+    .empty-state-text { font-size: 14px; }
+
+    .toast {
+      position: fixed;
+      bottom: var(--spacing-md);
+      right: var(--spacing-md);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: 13px;
+      animation: slideIn 0.3s ease;
+    }
+
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--error); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .loading {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border-color);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <span class="logo-icon">🎛️</span>
+        <span class="logo-text">Session Tracker</span>
+      </div>
+      <button class="btn" id="new-session-btn">+ New Session</button>
+    </header>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">🎙️</div>
+        <div class="stat-value" id="total-sessions">0</div>
+        <div class="stat-label">Sessions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🎤</div>
+        <div class="stat-value" id="total-takes">0</div>
+        <div class="stat-label">Takes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-value" id="total-hours">0h</div>
+        <div class="stat-label">Studio Time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⭐</div>
+        <div class="stat-value" id="avg-rating">0</div>
+        <div class="stat-label">Avg Rating</div>
+      </div>
+    </div>
+
+    <div class="sessions-list" id="sessions-list">
+      <div class="empty-state">
+        <div class="empty-state-icon">🎙️</div>
+        <div class="empty-state-text">No sessions yet. Create your first recording session!</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Session Modal -->
+  <div class="modal-overlay" id="session-modal" style="display: none;">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">New Recording Session</span>
+        <button class="modal-close" id="modal-close">&times;</button>
+      </div>
+      <form id="session-form">
+        <div class="form-group">
+          <label class="form-label">Song</label>
+          <select class="form-select" id="session-song" required>
+            <option value="">Select a song...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Studio</label>
+          <input type="text" class="form-input" id="session-studio" placeholder="Studio name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Engineer</label>
+          <input type="text" class="form-input" id="session-engineer" placeholder="Engineer name">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-input" id="session-date" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <textarea class="form-textarea" id="session-notes" placeholder="Session notes..."></textarea>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="cancel-session">Cancel</button>
+          <button type="submit" class="btn">Create Session</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { App } from '@modelcontextprotocol/ext-apps';
+    // MCP App - uses official @modelcontextprotocol/ext-apps SDK
+    const app = new App({ name: 'RhymeBook-SessionTracker', version: '1.0.0' });
+
+    // DOM Elements
+    const sessionsList = document.getElementById('sessions-list');
+    const sessionModal = document.getElementById('session-modal');
+    const sessionForm = document.getElementById('session-form');
+    const newSessionBtn = document.getElementById('new-session-btn');
+    const modalClose = document.getElementById('modal-close');
+    const cancelSession = document.getElementById('cancel-session');
+    const sessionSong = document.getElementById('session-song');
+
+    // State
+    let sessions = [];
+    let songs = [];
+
+    // Show toast
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Format duration
+    function formatDuration(seconds) {
+      const hours = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      if (hours > 0) return `${hours}h ${mins}m`;
+      return `${mins}m`;
+    }
+
+    // Render stars
+    function renderStars(rating) {
+      return '⭐'.repeat(Math.min(5, Math.max(0, rating)));
+    }
+
+    // Load sessions
+    async function loadSessions() {
+      try {
+        const result = await app.callServerTool({
+          name: 'get-all-sessions',
+          arguments: {}
+        });
+        const data = JSON.parse(result.content[0].text);
+        sessions = data.sessions || [];
+        renderSessions();
+        updateStats();
+      } catch (err) {
+        showToast('Failed to load sessions', 'error');
+      }
+    }
+
+    // Load songs for dropdown
+    async function loadSongs() {
+      try {
+        const result = await app.callServerTool({
+          name: 'get-all-songs',
+          arguments: {}
+        });
+        const data = JSON.parse(result.content[0].text);
+        songs = data.songs || [];
+        renderSongOptions();
+      } catch (err) {
+        console.error('Failed to load songs:', err);
+      }
+    }
+
+    // Render song options
+    function renderSongOptions() {
+      sessionSong.innerHTML = '<option value="">Select a song...</option>';
+      songs.forEach(song => {
+        sessionSong.innerHTML += `<option value="${song.id}">${song.title}</option>`;
+      });
+    }
+
+    // Update stats
+    function updateStats() {
+      const totalSessions = sessions.length;
+      const totalTakes = sessions.reduce((sum, s) => sum + (s.takes?.length || 0), 0);
+      const totalSeconds = sessions.reduce((sum, s) => sum + (s.duration || 0), 0);
+      const allRatings = sessions.flatMap(s => s.takes?.map(t => t.rating) || []);
+      const avgRating = allRatings.length > 0
+        ? (allRatings.reduce((a, b) => a + b, 0) / allRatings.length).toFixed(1)
+        : '0';
+
+      document.getElementById('total-sessions').textContent = totalSessions;
+      document.getElementById('total-takes').textContent = totalTakes;
+      document.getElementById('total-hours').textContent = formatDuration(totalSeconds);
+      document.getElementById('avg-rating').textContent = avgRating;
+    }
+
+    // Render sessions
+    function renderSessions() {
+      if (sessions.length === 0) {
+        sessionsList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🎙️</div>
+            <div class="empty-state-text">No sessions yet. Create your first recording session!</div>
+          </div>
+        `;
+        return;
+      }
+
+      sessionsList.innerHTML = sessions.map(session => `
+        <div class="session-card" data-id="${session.id}">
+          <div class="session-header">
+            <div class="session-title">${session.songTitle || 'Untitled Session'}</div>
+            <span class="session-status ${session.status}">${session.status}</span>
+          </div>
+          <div class="session-meta">
+            <span>📅 ${new Date(session.date).toLocaleDateString()}</span>
+            <span>🏢 ${session.studio || 'N/A'}</span>
+            <span>👤 ${session.engineer || 'N/A'}</span>
+            <span>⏱️ ${formatDuration(session.duration || 0)}</span>
+          </div>
+          ${session.takes?.length > 0 ? `
+            <div class="session-takes">
+              <div class="takes-header">
+                <span class="takes-title">Takes (${session.takes.length})</span>
+              </div>
+              ${session.takes.slice(0, 5).map(take => `
+                <div class="take-item">
+                  <span class="take-number">#${take.take_number}</span>
+                  <span class="take-rating">${renderStars(take.rating)}</span>
+                  <span class="take-duration">${formatDuration(take.duration || 0)}</span>
+                  <span class="take-notes">${take.notes || ''}</span>
+                </div>
+              `).join('')}
+              ${session.takes.length > 5 ? `<div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">+${session.takes.length - 5} more takes</div>` : ''}
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    // Modal handlers
+    newSessionBtn.addEventListener('click', () => {
+      sessionModal.style.display = 'flex';
+      document.getElementById('session-date').valueAsDate = new Date();
+      loadSongs();
+    });
+
+    modalClose.addEventListener('click', () => {
+      sessionModal.style.display = 'none';
+    });
+
+    cancelSession.addEventListener('click', () => {
+      sessionModal.style.display = 'none';
+    });
+
+    sessionModal.addEventListener('click', (e) => {
+      if (e.target === sessionModal) {
+        sessionModal.style.display = 'none';
+      }
+    });
+
+    // Create session
+    sessionForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const songId = sessionSong.value;
+      const song = songs.find(s => s.id === songId);
+
+      try {
+        await app.callServerTool({
+          name: 'create-session',
+          arguments: {
+            songId,
+            songTitle: song?.title || 'Untitled',
+            studio: document.getElementById('session-studio').value,
+            engineer: document.getElementById('session-engineer').value,
+            date: document.getElementById('session-date').value,
+            notes: document.getElementById('session-notes').value
+          }
+        });
+
+        sessionModal.style.display = 'none';
+        sessionForm.reset();
+        showToast('Session created successfully');
+        loadSessions();
+
+        await app.updateModelContext({
+          content: [{ type: 'text', text: `Created new recording session for "${song?.title || 'Untitled'}"` }]
+        });
+      } catch (err) {
+        showToast('Failed to create session', 'error');
+      }
+    });
+
+    // Handle tool results from host
+    app.ontoolresult = (result) => {
+      if (result?.content?.[0]?.text) {
+        try {
+          const data = JSON.parse(result.content[0].text);
+          if (data.sessions) {
+            sessions = data.sessions;
+            renderSessions();
+            updateStats();
+          }
+        } catch (e) {
+          // Not JSON, ignore
+        }
+      }
+    };
+
+    // Connect to host (must be called after setting up handlers), then load data
+    await app.connect();
+    loadSessions();
+  </script>
+</body>
+</html>

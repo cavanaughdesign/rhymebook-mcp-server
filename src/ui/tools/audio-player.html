@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RhymeBook - Audio Player</title>
+  <style>
+    :root {
+      --bg-primary: #0d0d0d;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #252525;
+      --bg-card: #1e1e1e;
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --text-muted: #666666;
+      --accent-primary: #9333ea;
+      --accent-secondary: #a855f7;
+      --accent-gold: #fbbf24;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --border-color: #333333;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: var(--spacing-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .player {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-lg);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .player-header {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .logo-icon { font-size: 24px; }
+    .logo-text { font-size: 18px; font-weight: 700; color: var(--accent-primary); }
+
+    .track-info {
+      text-align: center;
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .track-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .track-artist {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .waveform-container {
+      height: 80px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--spacing-md);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .waveform {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 2px;
+      padding: var(--spacing-sm);
+    }
+
+    .waveform-bar {
+      width: 3px;
+      background: var(--text-muted);
+      border-radius: 1px;
+      transition: background 0.1s;
+    }
+
+    .waveform-bar.played { background: var(--accent-primary); }
+
+    .progress-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: rgba(147, 51, 234, 0.1);
+      pointer-events: none;
+      transition: width 0.1s linear;
+    }
+
+    .time-display {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .control-btn {
+      background: var(--bg-tertiary);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      font-size: 16px;
+    }
+
+    .control-btn:hover { background: var(--bg-hover); }
+    .control-btn:active { transform: scale(0.95); }
+    .control-btn.play { width: 56px; height: 56px; background: var(--accent-primary); font-size: 20px; }
+    .control-btn.play:hover { background: var(--accent-secondary); }
+
+    .volume-control {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-md);
+    }
+
+    .volume-icon { font-size: 16px; }
+
+    .volume-slider {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      background: var(--bg-tertiary);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .volume-slider::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+
+    .effects {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--spacing-sm);
+    }
+
+    .effect-control {
+      background: var(--bg-secondary);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-sm);
+    }
+
+    .effect-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .effect-slider {
+      width: 100%;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 3px;
+      background: var(--bg-tertiary);
+      border-radius: 2px;
+      outline: none;
+    }
+
+    .effect-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      background: var(--accent-gold);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+
+    .effect-slider::-moz-range-thumb {
+      width: 12px;
+      height: 12px;
+      background: var(--accent-gold);
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+    }
+
+    .no-track {
+      text-align: center;
+      padding: var(--spacing-xl);
+      color: var(--text-muted);
+    }
+
+    .no-track-icon { font-size: 48px; margin-bottom: var(--spacing-md); }
+    .no-track-text { font-size: 14px; }
+
+    .toast {
+      position: fixed;
+      bottom: var(--spacing-md);
+      right: var(--spacing-md);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: 13px;
+      animation: slideIn 0.3s ease;
+      z-index: 100;
+    }
+
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--error); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="player">
+    <div class="player-header">
+      <span class="logo-icon">🎵</span>
+      <span class="logo-text">Audio Player</span>
+    </div>
+
+    <div id="track-loaded" style="display: none;">
+      <div class="track-info">
+        <div class="track-title" id="track-title">No Track Loaded</div>
+        <div class="track-artist" id="track-artist">-</div>
+      </div>
+
+      <div class="waveform-container" id="waveform-container">
+        <div class="progress-overlay" id="progress-overlay"></div>
+        <div class="waveform" id="waveform"></div>
+      </div>
+
+      <div class="time-display">
+        <span id="current-time">0:00</span>
+        <span id="duration">0:00</span>
+      </div>
+
+      <div class="controls">
+        <button class="control-btn" id="prev-btn" title="Previous">⏮</button>
+        <button class="control-btn" id="rw-btn" title="Rewind 10s">⏪</button>
+        <button class="control-btn play" id="play-btn" title="Play">▶</button>
+        <button class="control-btn" id="ff-btn" title="Forward 10s">⏩</button>
+        <button class="control-btn" id="next-btn" title="Next">⏭</button>
+      </div>
+
+      <div class="volume-control">
+        <span class="volume-icon">🔊</span>
+        <input type="range" class="volume-slider" id="volume-slider" min="0" max="100" value="80">
+      </div>
+
+      <div class="effects">
+        <div class="effect-control">
+          <div class="effect-label">Reverb</div>
+          <input type="range" class="effect-slider" id="reverb-slider" min="0" max="100" value="0">
+        </div>
+        <div class="effect-control">
+          <div class="effect-label">Bass Boost</div>
+          <input type="range" class="effect-slider" id="bass-slider" min="0" max="100" value="0">
+        </div>
+        <div class="effect-control">
+          <div class="effect-label">Treble</div>
+          <input type="range" class="effect-slider" id="treble-slider" min="0" max="100" value="50">
+        </div>
+        <div class="effect-control">
+          <div class="effect-label">Speed</div>
+          <input type="range" class="effect-slider" id="speed-slider" min="50" max="150" value="100">
+        </div>
+      </div>
+    </div>
+
+    <div class="no-track" id="no-track">
+      <div class="no-track-icon">🎧</div>
+      <div class="no-track-text">No audio loaded. Select a beat to start playing!</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { App } from '@modelcontextprotocol/ext-apps';
+    // MCP App - uses official @modelcontextprotocol/ext-apps SDK
+    const app = new App({ name: 'RhymeBook-AudioPlayer', version: '1.0.0' });
+
+    // DOM Elements
+    const trackLoaded = document.getElementById('track-loaded');
+    const noTrack = document.getElementById('no-track');
+    const trackTitle = document.getElementById('track-title');
+    const trackArtist = document.getElementById('track-artist');
+    const waveformContainer = document.getElementById('waveform-container');
+    const waveform = document.getElementById('waveform');
+    const progressOverlay = document.getElementById('progress-overlay');
+    const currentTimeEl = document.getElementById('current-time');
+    const durationEl = document.getElementById('duration');
+    const playBtn = document.getElementById('play-btn');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const rwBtn = document.getElementById('rw-btn');
+    const ffBtn = document.getElementById('ff-btn');
+    const volumeSlider = document.getElementById('volume-slider');
+    const reverbSlider = document.getElementById('reverb-slider');
+    const bassSlider = document.getElementById('bass-slider');
+    const trebleSlider = document.getElementById('treble-slider');
+    const speedSlider = document.getElementById('speed-slider');
+
+    // State
+    let audioContext = null;
+    let audioElement = null;
+    let isPlaying = false;
+    let currentTrack = null;
+
+    // Show toast
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Format time
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    // Generate waveform visualization
+    function generateWaveform(seed = Math.random()) {
+      const bars = [];
+      for (let i = 0; i < 60; i++) {
+        const height = 10 + Math.abs(Math.sin(seed * i * 0.3)) * 60;
+        bars.push(height);
+      }
+      return bars;
+    }
+
+    // Render waveform
+    function renderWaveform() {
+      const bars = generateWaveform(currentTrack?.id?.charCodeAt(0) || Math.random());
+      waveform.innerHTML = bars.map(h => 
+        `<div class="waveform-bar" style="height: ${h}px;"></div>`
+      ).join('');
+    }
+
+    // Update progress
+    function updateProgress() {
+      if (!audioElement) return;
+      const progress = (audioElement.currentTime / audioElement.duration) * 100 || 0;
+      progressOverlay.style.width = `${progress}%`;
+      currentTimeEl.textContent = formatTime(audioElement.currentTime);
+
+      // Update waveform bars
+      const bars = waveform.querySelectorAll('.waveform-bar');
+      const playedBars = Math.floor((progress / 100) * bars.length);
+      bars.forEach((bar, i) => {
+        bar.classList.toggle('played', i < playedBars);
+      });
+    }
+
+    // Load track
+    function loadTrack(track) {
+      currentTrack = track;
+      trackTitle.textContent = track.title || 'Unknown Track';
+      trackArtist.textContent = track.producer || 'Unknown Producer';
+      durationEl.textContent = formatTime(track.duration || 0);
+
+      trackLoaded.style.display = 'block';
+      noTrack.style.display = 'none';
+
+      renderWaveform();
+
+      // Create audio element if needed
+      if (track.file_path) {
+        if (audioElement) {
+          audioElement.pause();
+          audioElement.src = '';
+        }
+        audioElement = new Audio(track.file_path);
+        audioElement.volume = volumeSlider.value / 100;
+
+        audioElement.addEventListener('loadedmetadata', () => {
+          durationEl.textContent = formatTime(audioElement.duration);
+        });
+
+        audioElement.addEventListener('timeupdate', updateProgress);
+        audioElement.addEventListener('ended', () => {
+          isPlaying = false;
+          playBtn.textContent = '▶';
+        });
+      }
+    }
+
+    // Toggle play/pause
+    function togglePlay() {
+      if (!audioElement) {
+        showToast('No audio file available', 'error');
+        return;
+      }
+
+      if (isPlaying) {
+        audioElement.pause();
+        playBtn.textContent = '▶';
+      } else {
+        audioElement.play().catch(err => {
+          showToast('Failed to play audio', 'error');
+        });
+        playBtn.textContent = '⏸';
+      }
+      isPlaying = !isPlaying;
+    }
+
+    // Seek
+    function seek(time) {
+      if (!audioElement) return;
+      audioElement.currentTime = Math.max(0, Math.min(audioElement.duration, audioElement.currentTime + time));
+    }
+
+    // Seek to position
+    function seekToPosition(e) {
+      if (!audioElement) return;
+      const rect = waveformContainer.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      audioElement.currentTime = pos * audioElement.duration;
+    }
+
+    // Event listeners
+    playBtn.addEventListener('click', togglePlay);
+    rwBtn.addEventListener('click', () => seek(-10));
+    ffBtn.addEventListener('click', () => seek(10));
+    waveformContainer.addEventListener('click', seekToPosition);
+
+    volumeSlider.addEventListener('input', () => {
+      if (audioElement) {
+        audioElement.volume = volumeSlider.value / 100;
+      }
+    });
+
+    speedSlider.addEventListener('input', () => {
+      if (audioElement) {
+        audioElement.playbackRate = speedSlider.value / 100;
+      }
+    });
+
+    // Handle tool results from host
+    app.ontoolresult = (result) => {
+      if (result?.content?.[0]?.text) {
+        try {
+          const data = JSON.parse(result.content[0].text);
+          if (data.track) {
+            loadTrack(data.track);
+          } else if (data.beat) {
+            loadTrack(data.beat);
+          }
+        } catch (e) {
+          // Not JSON, ignore
+        }
+      }
+    };
+
+    // Connect to host (must be called after setting up handlers)
+    await app.connect();
+  </script>
+</body>
+</html>

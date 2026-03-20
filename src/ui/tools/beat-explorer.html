@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RhymeBook - Beat Explorer</title>
+  <style>
+    :root {
+      --bg-primary: #0d0d0d;
+      --bg-secondary: #1a1a1a;
+      --bg-tertiary: #252525;
+      --bg-card: #1e1e1e;
+      --bg-hover: #2a2a2a;
+      --text-primary: #ffffff;
+      --text-secondary: #b0b0b0;
+      --text-muted: #666666;
+      --accent-primary: #9333ea;
+      --accent-secondary: #a855f7;
+      --accent-gold: #fbbf24;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --info: #3b82f6;
+      --border-color: #333333;
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --spacing-xs: 4px;
+      --spacing-sm: 8px;
+      --spacing-md: 16px;
+      --spacing-lg: 24px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: var(--spacing-md);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-lg);
+      padding-bottom: var(--spacing-md);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+    }
+
+    .logo-icon { font-size: 24px; }
+    .logo-text { font-size: 20px; font-weight: 700; color: var(--accent-primary); }
+
+    .container { max-width: 1000px; margin: 0 auto; }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-lg);
+    }
+
+    .filter-input {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: 13px;
+      min-width: 150px;
+    }
+
+    .filter-input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+
+    .filter-select {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-primary);
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: 13px;
+    }
+
+    .filter-select:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+    }
+
+    .btn {
+      background: var(--accent-primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn:hover { background: var(--accent-secondary); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-secondary { background: var(--bg-tertiary); }
+    .btn-secondary:hover { background: var(--bg-hover); }
+    .btn-sm { padding: 4px 8px; font-size: 12px; }
+
+    .beats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: var(--spacing-md);
+    }
+
+    .beat-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .beat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .beat-waveform {
+      height: 60px;
+      background: var(--bg-tertiary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .waveform-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 40px;
+    }
+
+    .waveform-bar {
+      width: 3px;
+      background: var(--accent-primary);
+      border-radius: 1px;
+      transition: height 0.1s;
+    }
+
+    .beat-info {
+      padding: var(--spacing-md);
+    }
+
+    .beat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .beat-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .beat-favorite {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      opacity: 0.5;
+      transition: opacity 0.2s;
+    }
+
+    .beat-favorite:hover, .beat-favorite.active { opacity: 1; }
+
+    .beat-producer {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .beat-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .beat-meta-item {
+      background: var(--bg-tertiary);
+      padding: 2px 8px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      color: var(--text-secondary);
+    }
+
+    .beat-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .beat-tag {
+      background: var(--accent-primary);
+      color: white;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      font-size: 10px;
+    }
+
+    .beat-energy {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      margin-bottom: var(--spacing-sm);
+    }
+
+    .energy-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--bg-tertiary);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .energy-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success), var(--warning), var(--error));
+      border-radius: 2px;
+      transition: width 0.3s;
+    }
+
+    .energy-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      min-width: 60px;
+    }
+
+    .beat-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+    }
+
+    .beat-actions .btn { flex: 1; }
+
+    .match-score {
+      position: absolute;
+      top: var(--spacing-sm);
+      right: var(--spacing-sm);
+      background: var(--accent-gold);
+      color: black;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: var(--spacing-xl);
+      color: var(--text-muted);
+      grid-column: 1 / -1;
+    }
+
+    .empty-state-icon { font-size: 48px; margin-bottom: var(--spacing-md); }
+    .empty-state-text { font-size: 14px; }
+
+    .toast {
+      position: fixed;
+      bottom: var(--spacing-md);
+      right: var(--spacing-md);
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: var(--spacing-sm) var(--spacing-md);
+      font-size: 13px;
+      animation: slideIn 0.3s ease;
+      z-index: 100;
+    }
+
+    .toast.success { border-color: var(--success); }
+    .toast.error { border-color: var(--error); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .loading {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border-color);
+      border-top-color: var(--accent-primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .results-count {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: var(--spacing-md);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <div class="header-left">
+        <span class="logo-icon">🎧</span>
+        <span class="logo-text">Beat Explorer</span>
+      </div>
+    </header>
+
+    <div class="filters">
+      <input type="text" class="filter-input" id="search-input" placeholder="Search beats...">
+      <select class="filter-select" id="genre-filter">
+        <option value="">All Genres</option>
+        <option value="trap">Trap</option>
+        <option value="boom-bap">Boom Bap</option>
+        <option value="lo-fi">Lo-Fi</option>
+        <option value="drill">Drill</option>
+        <option value="r&b">R&B</option>
+        <option value="pop">Pop</option>
+      </select>
+      <select class="filter-select" id="mood-filter">
+        <option value="">All Moods</option>
+        <option value="dark">Dark</option>
+        <option value="chill">Chill</option>
+        <option value="energetic">Energetic</option>
+        <option value="melancholic">Melancholic</option>
+        <option value="aggressive">Aggressive</option>
+        <option value="uplifting">Uplifting</option>
+      </select>
+      <select class="filter-select" id="bpm-filter">
+        <option value="">All BPM</option>
+        <option value="60-90">60-90 (Slow)</option>
+        <option value="90-120">90-120 (Mid)</option>
+        <option value="120-150">120-150 (Fast)</option>
+        <option value="150-200">150-200 (Very Fast)</option>
+      </select>
+      <button class="btn" id="search-btn">Search</button>
+      <button class="btn btn-secondary" id="random-btn">🎲 Random</button>
+    </div>
+
+    <div class="results-count" id="results-count"></div>
+
+    <div class="beats-grid" id="beats-grid">
+      <div class="empty-state">
+        <div class="empty-state-icon">🎧</div>
+        <div class="empty-state-text">Search for beats or click Random to discover new sounds!</div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { App } from '@modelcontextprotocol/ext-apps';
+    // MCP App - uses official @modelcontextprotocol/ext-apps SDK
+    const app = new App({ name: 'RhymeBook-BeatExplorer', version: '1.0.0' });
+
+    // DOM Elements
+    const searchInput = document.getElementById('search-input');
+    const genreFilter = document.getElementById('genre-filter');
+    const moodFilter = document.getElementById('mood-filter');
+    const bpmFilter = document.getElementById('bpm-filter');
+    const searchBtn = document.getElementById('search-btn');
+    const randomBtn = document.getElementById('random-btn');
+    const beatsGrid = document.getElementById('beats-grid');
+    const resultsCount = document.getElementById('results-count');
+
+    // State
+    let beats = [];
+
+    // Show toast
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Generate waveform bars
+    function generateWaveform(seed = Math.random()) {
+      const bars = [];
+      for (let i = 0; i < 40; i++) {
+        const height = 5 + Math.abs(Math.sin(seed * i * 0.5)) * 35;
+        bars.push(height);
+      }
+      return bars;
+    }
+
+    // Get energy label
+    function getEnergyLabel(energy) {
+      if (energy >= 80) return 'High';
+      if (energy >= 60) return 'Medium-High';
+      if (energy >= 40) return 'Medium';
+      if (energy >= 20) return 'Low-Medium';
+      return 'Low';
+    }
+
+    // Render beats
+    function renderBeats() {
+      if (beats.length === 0) {
+        beatsGrid.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">🎧</div>
+            <div class="empty-state-text">No beats found. Try different filters!</div>
+          </div>
+        `;
+        resultsCount.textContent = '';
+        return;
+      }
+
+      resultsCount.textContent = `${beats.length} beat${beats.length !== 1 ? 's' : ''} found`;
+
+      beatsGrid.innerHTML = beats.map((beat, index) => {
+        const waveform = generateWaveform(beat.id?.charCodeAt(0) || index);
+        const energy = beat.energy || 50;
+
+        return `
+          <div class="beat-card" data-id="${beat.id}">
+            <div class="beat-waveform">
+              <div class="waveform-bars">
+                ${waveform.map(h => `<div class="waveform-bar" style="height: ${h}px;"></div>`).join('')}
+              </div>
+              ${beat.matchScore ? `<span class="match-score">${beat.matchScore}% match</span>` : ''}
+            </div>
+            <div class="beat-info">
+              <div class="beat-header">
+                <div class="beat-title">${beat.title || 'Untitled Beat'}</div>
+                <button class="beat-favorite ${beat.favorite ? 'active' : ''}" data-id="${beat.id}">
+                  ${beat.favorite ? '❤️' : '🤍'}
+                </button>
+              </div>
+              <div class="beat-producer">by ${beat.producer || 'Unknown Producer'}</div>
+              <div class="beat-meta">
+                <span class="beat-meta-item">🎵 ${beat.bpm || 0} BPM</span>
+                <span class="beat-meta-item">🎹 ${beat.key || 'N/A'}</span>
+                <span class="beat-meta-item">⏱️ ${Math.floor((beat.duration || 0) / 60)}:${String(Math.floor((beat.duration || 0) % 60)).padStart(2, '0')}</span>
+              </div>
+              ${beat.genre?.length > 0 || beat.mood?.length > 0 ? `
+                <div class="beat-tags">
+                  ${(beat.genre || []).slice(0, 2).map(g => `<span class="beat-tag">${g}</span>`).join('')}
+                  ${(beat.mood || []).slice(0, 2).map(m => `<span class="beat-tag" style="background: var(--bg-tertiary);">${m}</span>`).join('')}
+                </div>
+              ` : ''}
+              <div class="beat-energy">
+                <div class="energy-bar">
+                  <div class="energy-fill" style="width: ${energy}%;"></div>
+                </div>
+                <span class="energy-label">${getEnergyLabel(energy)}</span>
+              </div>
+              <div class="beat-actions">
+                <button class="btn btn-sm btn-secondary preview-btn" data-id="${beat.id}">▶ Preview</button>
+                <button class="btn btn-sm select-btn" data-id="${beat.id}">Select</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Add event listeners
+      document.querySelectorAll('.beat-favorite').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          toggleFavorite(btn.dataset.id);
+        });
+      });
+
+      document.querySelectorAll('.preview-btn').forEach(btn => {
+        btn.addEventListener('click', () => previewBeat(btn.dataset.id));
+      });
+
+      document.querySelectorAll('.select-btn').forEach(btn => {
+        btn.addEventListener('click', () => selectBeat(btn.dataset.id));
+      });
+    }
+
+    // Search beats
+    async function searchBeats() {
+      const query = searchInput.value.trim();
+      const genre = genreFilter.value;
+      const mood = moodFilter.value;
+      const bpmRange = bpmFilter.value;
+
+      searchBtn.disabled = true;
+      searchBtn.innerHTML = '<span class="loading"></span>';
+
+      try {
+        const args = {};
+        if (query) args.query = query;
+        if (genre) args.genre = genre;
+        if (mood) args.mood = mood;
+        if (bpmRange) {
+          const [min, max] = bpmRange.split('-').map(Number);
+          args.bpmMin = min;
+          args.bpmMax = max;
+        }
+
+        const result = await app.callServerTool({
+          name: 'search-beats',
+          arguments: args
+        });
+
+        const data = JSON.parse(result.content[0].text);
+        beats = data.beats || [];
+        renderBeats();
+      } catch (err) {
+        showToast('Failed to search beats', 'error');
+      } finally {
+        searchBtn.disabled = false;
+        searchBtn.textContent = 'Search';
+      }
+    }
+
+    // Get random beat
+    async function getRandomBeat() {
+      randomBtn.disabled = true;
+      randomBtn.innerHTML = '<span class="loading"></span>';
+
+      try {
+        const result = await app.callServerTool({
+          name: 'get-random-beat',
+          arguments: {}
+        });
+
+        const data = JSON.parse(result.content[0].text);
+        if (data.beat) {
+          beats = [data.beat];
+          renderBeats();
+        }
+      } catch (err) {
+        showToast('Failed to get random beat', 'error');
+      } finally {
+        randomBtn.disabled = false;
+        randomBtn.textContent = '🎲 Random';
+      }
+    }
+
+    // Toggle favorite
+    async function toggleFavorite(beatId) {
+      try {
+        await app.callServerTool({
+          name: 'toggle-beat-favorite',
+          arguments: { beatId }
+        });
+
+        const beat = beats.find(b => b.id === beatId);
+        if (beat) {
+          beat.favorite = !beat.favorite;
+          renderBeats();
+          showToast(beat.favorite ? 'Added to favorites' : 'Removed from favorites');
+        }
+      } catch (err) {
+        showToast('Failed to update favorite', 'error');
+      }
+    }
+
+    // Preview beat
+    async function previewBeat(beatId) {
+      const beat = beats.find(b => b.id === beatId);
+      if (beat) {
+        await app.updateModelContext({
+          content: [{ type: 'text', text: `User wants to preview beat: "${beat.title}" by ${beat.producer} (${beat.bpm} BPM, ${beat.key})` }]
+        });
+        showToast(`Previewing: ${beat.title}`);
+      }
+    }
+
+    // Select beat
+    async function selectBeat(beatId) {
+      const beat = beats.find(b => b.id === beatId);
+      if (beat) {
+        await app.updateModelContext({
+          content: [{ type: 'text', text: `User selected beat: "${beat.title}" by ${beat.producer} (${beat.bpm} BPM, ${beat.key}, ${beat.genre?.join(', ') || 'No genre'})` }]
+        });
+        showToast(`Selected: ${beat.title}`);
+      }
+    }
+
+    // Event listeners
+    searchBtn.addEventListener('click', searchBeats);
+    randomBtn.addEventListener('click', getRandomBeat);
+    searchInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') searchBeats();
+    });
+
+    // Handle tool results from host
+    app.ontoolresult = (result) => {
+      if (result?.content?.[0]?.text) {
+        try {
+          const data = JSON.parse(result.content[0].text);
+          if (data.beats) {
+            beats = data.beats;
+            renderBeats();
+          } else if (data.beat) {
+            beats = [data.beat];
+            renderBeats();
+          }
+        } catch (e) {
+          // Not JSON, ignore
+        }
+      }
+    };
+
+    // Connect to host (must be called after setting up handlers)
+    await app.connect();
+  </script>
+</body>
+</html>
