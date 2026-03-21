@@ -3,15 +3,8 @@
  * Core audio playback and analysis using Web Audio API with Tone.js effects
  */
 
-// Dynamic import for Tone.js to reduce bundle size
-let Tone: any = null;
-
-async function loadTone(): Promise<any> {
-  if (!Tone) {
-    Tone = await import('tone');
-  }
-  return Tone;
-}
+// Static import for Tone.js - bundled into single file for MCP compatibility
+import * as Tone from 'tone';
 
 export interface AudioState {
   isPlaying: boolean;
@@ -98,16 +91,14 @@ export class AudioEngine {
     if (this.toneInitialized) return;
 
     try {
-      // Load Tone.js dynamically
-      const toneModule = await loadTone();
-      
-      await toneModule.start();
+      // Tone.js is already imported statically
+      await Tone.start();
       
       // Create effects
-      this.reverb = new toneModule.Reverb({ decay: 2, wet: 0 });
-      this.eq3 = new toneModule.EQ3({ low: 0, mid: 0, high: 0 });
-      this.delay = new toneModule.FeedbackDelay({ delayTime: '8n', feedback: 0.3, wet: 0 });
-      this.distortion = new toneModule.Distortion({ distortion: 0, wet: 0 });
+      this.reverb = new Tone.Reverb({ decay: 2, wet: 0 });
+      this.eq3 = new Tone.EQ3({ low: 0, mid: 0, high: 0 });
+      this.delay = new Tone.FeedbackDelay({ delayTime: '8n', feedback: 0.3, wet: 0 });
+      this.distortion = new Tone.Distortion({ distortion: 0, wet: 0 });
 
       // Connect effects chain
       this.distortion.connect(this.eq3);

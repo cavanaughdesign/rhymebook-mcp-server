@@ -69,18 +69,18 @@ export function registerAudioProcessingTools(server: McpServer): void {
     'separate-audio',
     {
       title: 'Separate Audio Stems',
-      description: 'Separate audio into stems (vocals, drums, bass, etc.) using Spleeter AI. Requires Spleeter to be installed.',
+      description: 'Separate audio into stems (vocals, drums, bass, etc.) using AI',
       inputSchema: {
         inputPath: z.string().describe('Path to input audio file'),
         stems: z.enum(['2', '4', '5']).optional().describe('Number of stems: 2 (vocals/accompaniment), 4 (vocals/drums/bass/other), or 5 (vocals/drums/bass/piano/other)'),
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/audio-player.html',
         },
       },
     },
-    async ({ inputPath, stems = '2' }) => {
+    async ({ inputPath, stems = '2' }: { inputPath: string; stems?: '2' | '4' | '5' }) => {
       const outputDir = path.join(getBeatsLibraryPath(), '.separated', path.basename(inputPath, path.extname(inputPath)));
       const stemCount = parseInt(stems);
 
@@ -90,7 +90,11 @@ export function registerAudioProcessingTools(server: McpServer): void {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(result),
+            text: JSON.stringify({
+              ...result,
+              uiLink: 'http://localhost:3001/ui/tools/audio-player.html',
+              message: 'For interactive audio processing with full UI, open: http://localhost:3001/ui/tools/audio-player.html',
+            }),
           },
         ],
       };
@@ -98,18 +102,11 @@ export function registerAudioProcessingTools(server: McpServer): void {
   );
 
   // Tool: Check Audio Processing Status
-  registerAppTool(
-    server,
+  server.registerTool(
     'check-audio-tools',
     {
-      title: 'Check Audio Tools',
-      description: 'Check which audio processing tools are available (Spleeter, FFmpeg, etc.)',
+      description: 'Check which audio processing tools (Spleeter, FFmpeg, SoX) are installed and available on this system',
       inputSchema: {},
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
     async () => {
       const tools: Record<string, { available: boolean; version?: string }> = {};
@@ -152,6 +149,8 @@ export function registerAudioProcessingTools(server: McpServer): void {
                   ? 'FFmpeg available for audio conversion'
                   : 'Install FFmpeg for audio format conversion',
               },
+              uiLink: 'http://localhost:3001/ui/tools/audio-player.html',
+              message: 'For interactive audio processing with full UI, open: http://localhost:3001/ui/tools/audio-player.html',
             }),
           },
         ],
@@ -160,22 +159,15 @@ export function registerAudioProcessingTools(server: McpServer): void {
   );
 
   // Tool: Extract Vocals
-  registerAppTool(
-    server,
+  server.registerTool(
     'extract-vocals',
     {
-      title: 'Extract Vocals',
-      description: 'Extract vocals from a track using AI separation. Returns path to vocal and instrumental stems.',
+      description: 'Extract vocals and instrumental tracks from an audio file using Spleeter AI stem separation',
       inputSchema: {
         inputPath: z.string().describe('Path to input audio file'),
       },
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
-    async ({ inputPath }) => {
+    async ({ inputPath }: { inputPath: string }) => {
       const outputDir = path.join(getBeatsLibraryPath(), '.vocals', path.basename(inputPath, path.extname(inputPath)));
       
       const result = await separateAudio(inputPath, outputDir, 2);
@@ -193,6 +185,8 @@ export function registerAudioProcessingTools(server: McpServer): void {
                 vocals: vocals || null,
                 instrumental: accompaniment || null,
                 message: 'Vocals extracted successfully',
+                uiLink: 'http://localhost:3001/ui/tools/audio-player.html',
+                uiMessage: 'For interactive audio processing with full UI, open: http://localhost:3001/ui/tools/audio-player.html',
               }),
             },
           ],
@@ -203,7 +197,11 @@ export function registerAudioProcessingTools(server: McpServer): void {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(result),
+            text: JSON.stringify({
+              ...result,
+              uiLink: 'http://localhost:3001/ui/tools/audio-player.html',
+              message: 'For interactive audio processing with full UI, open: http://localhost:3001/ui/tools/audio-player.html',
+            }),
           },
         ],
       };

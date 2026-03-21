@@ -7,13 +7,9 @@ import { viteSingleFile } from 'vite-plugin-singlefile';
  * Key constraints:
  * - `vite-plugin-singlefile` inlines JS + CSS into index.html so the MCP host
  *   can serve it as a single text/html resource blob with no external deps.
- * - `inlineDynamicImports: true` (set by viteSingleFile) would silently break
- *   tone.js and wavesurfer.js which use dynamic import() internally.  We work
- *   around this by forcing them into the static bundle via the `ssr.noExternal`
- *   trick and by NOT using dynamic import() in audio-engine.ts / visualizers.ts
- *   (see those files for the updated static-import pattern).
  * - All console.* calls are stripped from production builds by terser so they
  *   don't appear in the host developer console.
+ * - INPUT env var specifies which HTML file to build (for multiple UI bundles)
  */
 export default defineConfig({
   root: './src/ui',
@@ -29,7 +25,7 @@ export default defineConfig({
   ],
   build: {
     outDir: '../../dist/ui',
-    emptyOutDir: true,
+    emptyOutDir: false, // Don't empty - we're building multiple files
     target: 'esnext',
     // Large assets (tone, wavesurfer) must be inlined — raise the limit
     assetsInlineLimit: 100 * 1024 * 1024, // 100 MB cap
@@ -39,18 +35,26 @@ export default defineConfig({
       compress: {
         drop_console: true,
         drop_debugger: true,
-        // Keep dynamic-import expressions intact so tone / wavesurfer
-        // lazy-load correctly at runtime inside the bundled iframe
-        keep_infinity: true,
       },
     },
     rollupOptions: {
+      input: process.env.INPUT || 'src/ui/index.html',
       output: {
         // viteSingleFile requires inlineDynamicImports to produce one file.
-        // tone and wavesurfer's internal dynamic imports are evaluated at
-        // runtime (not statically analysed by rollup), so this is safe.
         inlineDynamicImports: true,
         manualChunks: undefined,
+        entryFileNames: (chunkInfo) => {
+          // Extract the base name from the input path
+          const input = process.env.INPUT || 'src/ui/index.html';
+          const baseName = input.split('/').pop()?.replace('.html', '') || 'index';
+          return `${baseName}.js`;
+        },
+        assetFileNames: (assetInfo) => {
+          const input = process.env.INPUT || 'src/ui/index.html';
+          const baseName = input.split('/').pop()?.replace('.html', '') || 'index';
+          const ext = assetInfo.name?.split('.').pop() || 'css';
+          return `${baseName}.${ext}`;
+        },
       },
     },
   },

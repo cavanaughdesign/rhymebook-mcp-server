@@ -44,41 +44,51 @@ function createServer(): McpServer {
   registerDashboardTools(server);
   registerAudioProcessingTools(server);
 
-  // Register the MCP App UI resource — served as a single inlined HTML file
-  registerAppResource(
-    server,
-    'ui://rhymebook/app.html',
-    'ui://rhymebook/app.html',
-    { mimeType: RESOURCE_MIME_TYPE },
-    async () => {
-      // Prefer the production bundle in dist/ui, fall back to dev source
-      const distHtmlPath = path.resolve(__dirname, '../../dist/ui/index.html');
-      const fallbackHtmlPath = path.resolve(__dirname, '../ui/index.html');
+  // Register all MCP App UI resources — each tool has its own bundled HTML file
+  const uiResources = [
+    { uri: 'ui://rhymebook/lyric-lab.html', file: 'lyric-lab.html' },
+    { uri: 'ui://rhymebook/session-tracker.html', file: 'session-tracker.html' },
+    { uri: 'ui://rhymebook/beat-explorer.html', file: 'beat-explorer.html' },
+    { uri: 'ui://rhymebook/audio-player.html', file: 'audio-player.html' },
+    { uri: 'ui://rhymebook/app.html', file: 'index.html' },
+  ];
 
-      let htmlPathToUse = fallbackHtmlPath;
-      try {
-        await fs.access(distHtmlPath);
-        htmlPathToUse = distHtmlPath;
-        logInfo(`Serving bundled UI from ${distHtmlPath}`, 'server');
-      } catch {
+  for (const { uri, file } of uiResources) {
+    registerAppResource(
+      server,
+      uri,
+      uri,
+      { mimeType: RESOURCE_MIME_TYPE },
+      async () => {
+        // Prefer the production bundle in dist/ui, fall back to dev source
+        const distHtmlPath = path.resolve(__dirname, `../../dist/ui/${file}`);
+        const fallbackHtmlPath = path.resolve(__dirname, `../ui/tools/${file}`);
+
+        let htmlPathToUse = fallbackHtmlPath;
         try {
-          await fs.access(fallbackHtmlPath);
-          htmlPathToUse = fallbackHtmlPath;
-          logInfo(`Serving UI from ${fallbackHtmlPath}`, 'server');
-        } catch (err) {
-          logError('UI resource not found', 'server', err);
-          throw new Error('UI resource not found');
+          await fs.access(distHtmlPath);
+          htmlPathToUse = distHtmlPath;
+          logInfo(`Serving bundled UI from ${distHtmlPath}`, 'server');
+        } catch {
+          try {
+            await fs.access(fallbackHtmlPath);
+            htmlPathToUse = fallbackHtmlPath;
+            logInfo(`Serving UI from ${fallbackHtmlPath}`, 'server');
+          } catch (err) {
+            logError(`UI resource not found: ${file}`, 'server', err);
+            throw new Error(`UI resource not found: ${file}`);
+          }
         }
-      }
 
-      const html = await fs.readFile(htmlPathToUse, 'utf-8');
-      return {
-        contents: [
-          { uri: 'ui://rhymebook/app.html', mimeType: RESOURCE_MIME_TYPE, text: html }
-        ]
-      };
-    }
-  );
+        const html = await fs.readFile(htmlPathToUse, 'utf-8');
+        return {
+          contents: [
+            { uri, mimeType: RESOURCE_MIME_TYPE, text: html }
+          ]
+        };
+      }
+    );
+  }
 
   return server;
 }

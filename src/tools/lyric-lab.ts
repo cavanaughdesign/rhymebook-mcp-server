@@ -131,7 +131,7 @@ export function registerLyricLabTools(server: McpServer): void {
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/lyric-lab.html',
         },
       },
     },
@@ -178,33 +178,33 @@ export function registerLyricLabTools(server: McpServer): void {
     'count-syllables',
     {
       title: 'Count Syllables',
-      description: 'Count syllables in a line or multiple lines of lyrics',
+      description: 'Count syllables in text for flow analysis',
       inputSchema: {
-        text: z.string().max(50000).describe('The text to count syllables for'),
+        text: z.string().describe('The text to count syllables in'),
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/lyric-lab.html',
         },
       },
     },
     async ({ text }) => {
-      const lines = text.split('\n').filter(line => line.trim().length > 0);
-      const lineAnalysis = lines.map((line, index) => ({
-        lineNumber: index + 1,
+      const lines = text.split('\n').filter(l => l.trim());
+      const lineData = lines.map((line, i) => ({
+        lineNumber: i + 1,
         text: line,
         syllables: countLineSyllables(line),
       }));
 
-      const totalSyllables = lineAnalysis.reduce((sum, l) => sum + l.syllables, 0);
-      const avgSyllables = totalSyllables / lineAnalysis.length;
+      const totalSyllables = lineData.reduce((sum, l) => sum + l.syllables, 0);
+      const avgSyllables = lines.length > 0 ? totalSyllables / lines.length : 0;
 
       return {
         content: [
           {
             type: 'text',
             text: JSON.stringify({
-              lines: lineAnalysis,
+              lines: lineData,
               totalSyllables,
               averageSyllables: Math.round(avgSyllables * 10) / 10,
               lineCount: lines.length,
@@ -227,7 +227,7 @@ export function registerLyricLabTools(server: McpServer): void {
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/lyric-lab.html',
         },
       },
     },
@@ -277,7 +277,7 @@ export function registerLyricLabTools(server: McpServer): void {
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/lyric-lab.html',
         },
       },
     },
@@ -330,7 +330,7 @@ export function registerLyricLabTools(server: McpServer): void {
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/lyric-lab.html',
         },
       },
     },
@@ -379,7 +379,7 @@ export function registerLyricLabTools(server: McpServer): void {
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/lyric-lab.html',
         },
       },
     },
@@ -431,7 +431,7 @@ export function registerLyricLabTools(server: McpServer): void {
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/lyric-lab.html',
         },
       },
     },
@@ -487,7 +487,7 @@ export function registerLyricLabTools(server: McpServer): void {
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/lyric-lab.html',
         },
       },
     },
@@ -514,7 +514,7 @@ export function registerLyricLabTools(server: McpServer): void {
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/lyric-lab.html',
         },
       },
     },

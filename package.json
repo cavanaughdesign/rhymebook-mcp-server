@@ -33,7 +33,12 @@
   "scripts": {
     "build": "npm run build:server && npm run build:ui",
     "build:server": "tsc -p tsconfig.server.json",
-    "build:ui": "vite build",
+    "build:ui": "npm run build:ui:lyric-lab && npm run build:ui:session-tracker && npm run build:ui:beat-explorer && npm run build:ui:audio-player && npm run build:ui:dashboard",
+    "build:ui:lyric-lab": "cross-env INPUT=src/ui/tools/lyric-lab.html vite build",
+    "build:ui:session-tracker": "cross-env INPUT=src/ui/tools/session-tracker.html vite build",
+    "build:ui:beat-explorer": "cross-env INPUT=src/ui/tools/beat-explorer.html vite build",
+    "build:ui:audio-player": "cross-env INPUT=src/ui/tools/audio-player.html vite build",
+    "build:ui:dashboard": "cross-env INPUT=src/ui/index.html vite build",
     "start": "tsx src/server/index.ts",
     "start:stdio": "tsx src/server/index.ts --stdio",
     "dev": "concurrently \"npm run dev:server\" \"npm run dev:ui\"",
@@ -53,7 +58,8 @@
     "music-metadata": "^11.12.3",
     "tone": "^15.1.22",
     "wavesurfer.js": "^7.12.2",
-    "zod": "^4.3.6"
+    "zod": "^4.3.6",
+    "prom-client": "^14.1.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",

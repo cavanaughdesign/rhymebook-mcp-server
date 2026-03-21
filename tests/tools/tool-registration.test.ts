@@ -48,12 +48,12 @@ describe('Tool Registration', () => {
     it('should have proper meta structure', () => {
       const meta = {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/lyric-lab.html',
         },
       };
 
       expect(meta.ui).toBeDefined();
-      expect(meta.ui.resourceUri).toBe('ui://rhymebook/app.html');
+      expect(meta.ui.resourceUri).toBe('ui://rhymebook/lyric-lab.html');
     });
   });
 

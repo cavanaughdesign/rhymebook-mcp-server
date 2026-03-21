@@ -5,15 +5,8 @@
 
 import { AudioEngine, WaveformData } from './audio-engine.js';
 
-// Dynamic import for Wavesurfer.js to reduce bundle size
-let WaveSurfer: any = null;
-
-async function loadWaveSurfer(): Promise<any> {
-  if (!WaveSurfer) {
-    WaveSurfer = await import('wavesurfer.js');
-  }
-  return WaveSurfer;
-}
+// Static import for Wavesurfer.js - bundled into single file for MCP compatibility
+import WaveSurfer from 'wavesurfer.js';
 
 // ============ WAVEFORM VISUALIZER (Wavesurfer.js) ============
 
@@ -50,10 +43,8 @@ export class WaveformVisualizer {
 
   private async setupWavesurfer(): Promise<void> {
     try {
-      // Load WaveSurfer dynamically
-      const waveSurferModule = await loadWaveSurfer();
-
-      this.wavesurfer = waveSurferModule.default.create({
+      // WaveSurfer is already imported statically
+      this.wavesurfer = WaveSurfer.create({
         container: this.container,
         height: this.options.height,
         waveColor: this.options.waveColor,

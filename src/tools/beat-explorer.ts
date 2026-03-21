@@ -59,7 +59,7 @@ export function registerBeatExplorerTools(server: McpServer): void {
     'browse-beats',
     {
       title: 'Browse Beats',
-      description: 'Browse and filter beats by genre, mood, BPM range, or energy level',
+      description: 'Find beats by genre, mood, BPM, or energy level',
       inputSchema: {
         genre: z.string().optional().describe('Filter by genre (trap, drill, lo-fi, etc.)'),
         mood: z.string().optional().describe('Filter by mood (dark, happy, chill, etc.)'),
@@ -71,11 +71,19 @@ export function registerBeatExplorerTools(server: McpServer): void {
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/beat-explorer.html',
         },
       },
     },
-    async ({ genre, mood, minBpm, maxBpm, minEnergy, maxEnergy, favoritesOnly }) => {
+    async ({ genre, mood, minBpm, maxBpm, minEnergy, maxEnergy, favoritesOnly }: {
+      genre?: string;
+      mood?: string;
+      minBpm?: number;
+      maxBpm?: number;
+      minEnergy?: number;
+      maxEnergy?: number;
+      favoritesOnly?: boolean;
+    }) => {
       const beats = getAllBeats({ genre, mood, minBpm, maxBpm, minEnergy, maxEnergy, favoritesOnly });
 
       return {
@@ -90,6 +98,8 @@ export function registerBeatExplorerTools(server: McpServer): void {
               })),
               totalResults: beats.length,
               filters: { genre, mood, minBpm, maxBpm, minEnergy, maxEnergy, favoritesOnly },
+              uiLink: 'http://localhost:3001/ui/tools/beat-explorer.html',
+              message: 'For interactive beat exploration with full UI, use the interactive tab or open: http://localhost:3001/ui/tools/beat-explorer.html',
             }),
           },
         ],
@@ -102,18 +112,18 @@ export function registerBeatExplorerTools(server: McpServer): void {
     server,
     'get-beat-details',
     {
-      title: 'Beat Details',
-      description: 'Get detailed information about a specific beat including waveform visualization',
+      title: 'Get Beat Details',
+      description: 'Get detailed information about a specific beat',
       inputSchema: {
         beatId: z.string().describe('Beat ID'),
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/beat-explorer.html',
         },
       },
     },
-    async ({ beatId }) => {
+    async ({ beatId }: { beatId: string }) => {
       const beat = getBeat(beatId);
       if (!beat) {
         return {
@@ -134,6 +144,8 @@ export function registerBeatExplorerTools(server: McpServer): void {
                   ? `${Math.floor(beat.duration / 60)}:${(beat.duration % 60).toString().padStart(2, '0')}`
                   : 'Unknown',
               },
+              uiLink: 'http://localhost:3001/ui/tools/beat-explorer.html',
+              message: 'For interactive beat exploration with full UI, use the interactive tab or open: http://localhost:3001/ui/tools/beat-explorer.html',
             }),
           },
         ],
@@ -147,17 +159,17 @@ export function registerBeatExplorerTools(server: McpServer): void {
     'toggle-favorite',
     {
       title: 'Toggle Favorite',
-      description: 'Add or remove a beat from favorites',
+      description: 'Mark or unmark a beat as a favorite',
       inputSchema: {
         beatId: z.string().describe('Beat ID'),
       },
       _meta: {
         ui: {
-          resourceUri: 'ui://rhymebook/app.html',
+          resourceUri: 'ui://rhymebook/beat-explorer.html',
         },
       },
     },
-    async ({ beatId }) => {
+    async ({ beatId }: { beatId: string }) => {
       const favorite = toggleBeatFavorite(beatId);
 
       return {
@@ -176,18 +188,11 @@ export function registerBeatExplorerTools(server: McpServer): void {
   );
 
   // Tool: Get Collections
-  registerAppTool(
-    server,
+  server.registerTool(
     'get-collections',
     {
-      title: 'Get Collections',
-      description: 'Get all beat collections and their contents',
+      description: 'Retrieve all beat collections and playlists saved in the library',
       inputSchema: {},
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
     async () => {
       const collections = getAllCollections();
@@ -207,23 +212,16 @@ export function registerBeatExplorerTools(server: McpServer): void {
   );
 
   // Tool: Add to Collection
-  registerAppTool(
-    server,
+  server.registerTool(
     'add-to-collection',
     {
-      title: 'Add to Collection',
-      description: 'Add a beat to a collection',
+      description: 'Add a beat to an existing collection or create a new collection and add the beat to it',
       inputSchema: {
         beatId: z.string().describe('Beat ID'),
         collectionName: z.string().describe('Collection name'),
       },
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
-    async ({ beatId, collectionName }) => {
+    async ({ beatId, collectionName }: { beatId: string; collectionName: string }) => {
       const beat = getBeat(beatId);
       if (!beat) {
         return {
@@ -258,22 +256,15 @@ export function registerBeatExplorerTools(server: McpServer): void {
   );
 
   // Tool: Create Collection
-  registerAppTool(
-    server,
+  server.registerTool(
     'create-collection',
     {
-      title: 'Create Collection',
-      description: 'Create a new beat collection',
+      description: 'Create a new named beat collection or playlist for organising beats',
       inputSchema: {
         name: z.string().describe('Collection name'),
       },
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
-    async ({ name }) => {
+    async ({ name }: { name: string }) => {
       const collection = createCollection(name);
 
       return {
@@ -291,24 +282,17 @@ export function registerBeatExplorerTools(server: McpServer): void {
   );
 
   // Tool: Match Lyrics to Beat
-  registerAppTool(
-    server,
+  server.registerTool(
     'match-lyrics-to-beat',
     {
-      title: 'Match Lyrics to Beat',
-      description: 'Analyze lyrics and suggest beats that match the energy and mood',
+      description: 'Analyze lyrics for energy, mood and flow, then rank the best-matching beats from the library',
       inputSchema: {
         lyrics: z.string().describe('The lyrics to analyze'),
         preferredBpm: z.number().optional().describe('Preferred BPM range center'),
         preferredGenre: z.string().optional().describe('Preferred genre'),
       },
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
-    async ({ lyrics, preferredBpm, preferredGenre }) => {
+    async ({ lyrics, preferredBpm, preferredGenre }: { lyrics: string; preferredBpm?: number; preferredGenre?: string }) => {
       const beats = getAllBeats();
 
       // Analyze lyrics energy
@@ -320,7 +304,7 @@ export function registerBeatExplorerTools(server: McpServer): void {
       let energyScore = 50;
       let moodHints: string[] = [];
 
-      words.forEach(word => {
+      words.forEach((word: string) => {
         if (aggressiveWords.some(w => word.includes(w))) {
           energyScore += 10;
           moodHints.push('aggressive');
@@ -393,18 +377,11 @@ export function registerBeatExplorerTools(server: McpServer): void {
   );
 
   // Tool: Get Beat Stats
-  registerAppTool(
-    server,
+  server.registerTool(
     'get-beat-stats',
     {
-      title: 'Beat Library Stats',
-      description: 'Get statistics about the beat library',
+      description: 'Get aggregate statistics for the beats library including genre breakdown, BPM ranges, and total counts',
       inputSchema: {},
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
     async () => {
       const stats = getBeatStats();
@@ -417,6 +394,8 @@ export function registerBeatExplorerTools(server: McpServer): void {
             text: JSON.stringify({
               ...stats,
               library: libraryStats,
+              uiLink: 'http://localhost:3001/ui/tools/beat-explorer.html',
+              message: 'For interactive beat exploration with full UI, open: http://localhost:3001/ui/tools/beat-explorer.html',
             }),
           },
         ],
@@ -427,18 +406,11 @@ export function registerBeatExplorerTools(server: McpServer): void {
   // ============ LIBRARY MANAGEMENT TOOLS ============
 
   // Tool: Get Beats Library Path
-  registerAppTool(
-    server,
+  server.registerTool(
     'get-library-path',
     {
-      title: 'Get Library Path',
-      description: 'Get the current beats library folder path',
+      description: 'Get the current beats library folder path and its file statistics',
       inputSchema: {},
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
     async () => {
       const libraryPath = getBeatsLibraryPath();
@@ -451,6 +423,8 @@ export function registerBeatExplorerTools(server: McpServer): void {
             text: JSON.stringify({
               path: libraryPath,
               stats,
+              uiLink: 'http://localhost:3001/ui/tools/beat-explorer.html',
+              message: 'For interactive beat exploration with full UI, open: http://localhost:3001/ui/tools/beat-explorer.html',
             }),
           },
         ],
@@ -459,29 +433,26 @@ export function registerBeatExplorerTools(server: McpServer): void {
   );
 
   // Tool: Set Beats Library Path
-  registerAppTool(
-    server,
+  server.registerTool(
     'set-library-path',
     {
-      title: 'Set Library Path',
-      description: 'Set the beats library folder path',
+      description: 'Set or change the folder path where beat audio files are stored and managed',
       inputSchema: {
         path: z.string().describe('Path to the beats library folder'),
       },
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
-    async ({ path: newPath }) => {
+    async ({ path: newPath }: { path: string }) => {
       const result = await setBeatsLibraryPath(newPath);
 
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(result),
+            text: JSON.stringify({
+              success: result.success,
+              message: result.message,
+              uiLink: 'http://localhost:3001/ui/tools/beat-explorer.html',
+            }),
           },
         ],
       };
@@ -489,18 +460,11 @@ export function registerBeatExplorerTools(server: McpServer): void {
   );
 
   // Tool: Scan Beats Library
-  registerAppTool(
-    server,
+  server.registerTool(
     'scan-library',
     {
-      title: 'Scan Library',
-      description: 'Scan the beats library folder for audio files',
+      description: 'Scan the beats library folder and return all audio files found, including filename, size, and modification date',
       inputSchema: {},
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
     async () => {
       const files = await scanBeatsLibrary();
@@ -517,6 +481,8 @@ export function registerBeatExplorerTools(server: McpServer): void {
                 modified: f.modified,
               })),
               totalFiles: files.length,
+              uiLink: 'http://localhost:3001/ui/tools/beat-explorer.html',
+              message: 'For interactive beat exploration with full UI, open: http://localhost:3001/ui/tools/beat-explorer.html',
             }),
           },
         ],
@@ -525,18 +491,11 @@ export function registerBeatExplorerTools(server: McpServer): void {
   );
 
   // Tool: Import Beats from Library
-  registerAppTool(
-    server,
+  server.registerTool(
     'import-beats',
     {
-      title: 'Import Beats',
-      description: 'Import new beat files from the library folder into the database',
+      description: 'Scan the beats library folder and import any new audio files that are not yet in the database',
       inputSchema: {},
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
     async () => {
       const result = await importNewBeats();
@@ -545,7 +504,11 @@ export function registerBeatExplorerTools(server: McpServer): void {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(result),
+            text: JSON.stringify({
+              ...result,
+              uiLink: 'http://localhost:3001/ui/tools/beat-explorer.html',
+              message: 'For interactive beat exploration with full UI, open: http://localhost:3001/ui/tools/beat-explorer.html',
+            }),
           },
         ],
       };
@@ -553,29 +516,27 @@ export function registerBeatExplorerTools(server: McpServer): void {
   );
 
   // Tool: Copy Beat to Library
-  registerAppTool(
-    server,
+  server.registerTool(
     'copy-beat-to-library',
     {
-      title: 'Copy Beat to Library',
-      description: 'Copy a beat file from any location to the beats library',
+      description: 'Copy an audio file from any location into the managed beats library folder',
       inputSchema: {
         sourcePath: z.string().describe('Path to the source beat file'),
       },
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
-    async ({ sourcePath }) => {
+    async ({ sourcePath }: { sourcePath: string }) => {
       const result = await copyBeatToLibrary(sourcePath);
 
       return {
         content: [
           {
             type: 'text',
-            text: JSON.stringify(result),
+            text: JSON.stringify({
+              success: result.success,
+              message: result.message,
+              ...(result.newPath ? { newPath: result.newPath } : {}),
+              uiLink: 'http://localhost:3001/ui/tools/beat-explorer.html',
+            }),
           },
         ],
       };
@@ -583,12 +544,10 @@ export function registerBeatExplorerTools(server: McpServer): void {
   );
 
   // Tool: Add Beat Manually
-  registerAppTool(
-    server,
+  server.registerTool(
     'add-beat',
     {
-      title: 'Add Beat',
-      description: 'Add a new beat to the database. If filePath is provided, BPM/key/duration will be auto-detected.',
+      description: 'Manually add a beat to the database with metadata; auto-detects BPM, key and duration from the file when a path is provided',
       inputSchema: {
         title: z.string().describe('Beat title'),
         producer: z.string().optional().describe('Producer name'),
@@ -600,13 +559,18 @@ export function registerBeatExplorerTools(server: McpServer): void {
         tags: z.array(z.string()).optional().describe('Tags'),
         energy: z.number().optional().describe('Energy level (0-100)'),
       },
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
-    async ({ title, producer, filePath, bpm, key, genres, moods, tags, energy }) => {
+    async ({ title, producer, filePath, bpm, key, genres, moods, tags, energy }: {
+      title: string;
+      producer?: string;
+      filePath?: string;
+      bpm?: number;
+      key?: string;
+      genres?: string[];
+      moods?: string[];
+      tags?: string[];
+      energy?: number;
+    }) => {
       let detectedBpm = bpm || 0;
       let detectedKey = key || '';
       let detectedDuration = 0;
@@ -649,6 +613,8 @@ export function registerBeatExplorerTools(server: McpServer): void {
                 key: detectedKey !== (key || ''),
                 duration: detectedDuration,
               },
+              uiLink: 'http://localhost:3001/ui/tools/beat-explorer.html',
+              message: 'For interactive beat exploration with full UI, open: http://localhost:3001/ui/tools/beat-explorer.html',
             }),
           },
         ],
@@ -657,22 +623,15 @@ export function registerBeatExplorerTools(server: McpServer): void {
   );
 
   // Tool: Analyze Audio File
-  registerAppTool(
-    server,
+  server.registerTool(
     'analyze-audio',
     {
-      title: 'Analyze Audio',
-      description: 'Analyze an audio file to detect BPM, key, and duration',
+      description: 'Analyze an audio file to extract BPM, musical key, duration, codec, sample rate, and embedded tags',
       inputSchema: {
         filePath: z.string().describe('Path to audio file'),
       },
-      _meta: {
-        ui: {
-          resourceUri: 'ui://rhymebook/app.html',
-        },
-      },
     },
-    async ({ filePath }) => {
+    async ({ filePath }: { filePath: string }) => {
       try {
         const analysis = await analyzeAudioFile(filePath);
         const metadata = await mm.parseFile(filePath);
@@ -701,6 +660,8 @@ export function registerBeatExplorerTools(server: McpServer): void {
                   album: metadata.common.album,
                   year: metadata.common.year,
                 },
+                uiLink: 'http://localhost:3001/ui/tools/beat-explorer.html',
+                message: 'For interactive beat exploration with full UI, open: http://localhost:3001/ui/tools/beat-explorer.html',
               }),
             },
           ],
@@ -713,6 +674,8 @@ export function registerBeatExplorerTools(server: McpServer): void {
               text: JSON.stringify({
                 success: false,
                 error: `Failed to analyze audio: ${error}`,
+                uiLink: 'http://localhost:3001/ui/tools/beat-explorer.html',
+                message: 'For interactive beat exploration with full UI, open: http://localhost:3001/ui/tools/beat-explorer.html',
               }),
             },
           ],

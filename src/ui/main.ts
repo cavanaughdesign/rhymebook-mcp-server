@@ -1362,6 +1362,46 @@ app.ontoolresult = (result) => {
   console.log('Tool result received:', result);
 };
 
+// Host / AppBridge interaction handlers
+app.onhostcontextchanged = (ctx: any) => {
+  try {
+    if (ctx?.theme === 'dark') document.body.classList.add('dark-theme');
+    else document.body.classList.remove('dark-theme');
+
+    if (ctx?.displayMode) {
+      // Allow host to request compact / expanded display modes
+      document.body.setAttribute('data-display-mode', ctx.displayMode);
+    }
+  } catch (err) {
+    console.error('Error handling host context change', err);
+  }
+};
+
+app.ontoolinput = async (input: any) => {
+  // Hosts may forward tool inputs directly to the view; log for debugging
+  console.log('Tool input forwarded to view:', input);
+};
+
+app.onteardown = async () => {
+  // Save lightweight UI state if possible before host tears down the view.
+  try {
+    await app.callServerTool({ name: 'save-ui-state', arguments: { sections } }).catch(() => {});
+  } catch (e) {
+    // ignore
+  }
+  return {};
+};
+
+app.onloggingmessage = (msg: any) => {
+  // Mirror view-side logs and attempt to forward to host if supported
+  console.log('[View Log]', msg);
+  try {
+    if ((app as any).sendLog) (app as any).sendLog(msg);
+  } catch (err) {
+    // best-effort
+  }
+};
+
 // ============ ERROR HANDLING ============
 
 // Global error handler
